@@ -1,0 +1,654 @@
+# RUM Data Visualization Dashboard - React Implementation Guide
+
+## Overview
+Build a React dashboard to visualize Real User Monitoring (RUM) data fetched from your Spring Boot backend. The dashboard will display web vitals, errors, and user sessions with interactive charts and tables.
+
+---
+
+## Project Setup
+
+### 1. Create React App
+```bash
+npx create-react-app rum-dashboard
+cd rum-dashboard
+```
+
+### 2. Install Dependencies
+```bash
+npm install axios recharts react-router-dom date-fns
+npm install --save-dev tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+**Packages:**
+- `axios` - HTTP client for API calls
+- `recharts` - React charting library
+- `react-router-dom` - Routing
+- `date-fns` - Date formatting
+- `tailwindcss` - Styling framework
+
+---
+
+## Folder Structure
+```
+rum-dashboard/
+├── src/
+│   ├── components/
+│   │   ├── Dashboard.jsx
+│   │   ├── WebVitalsChart.jsx
+│   │   ├── ErrorsChart.jsx
+│   │   ├── SessionsTable.jsx
+│   │   ├── MetricsCard.jsx
+│   │   └── LoadingSpinner.jsx
+│   ├── services/
+│   │   └── apiService.js
+│   ├── hooks/
+│   │   └── useRUMData.js
+│   ├── App.jsx
+│   └── index.css
+└── package.json
+```
+
+---
+
+## Step 1: Create API Service
+
+Create `src/services/apiService.js`:
+
+```javascript
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:8080/api/rum';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+});
+
+export const rumAPI = {
+  // Health check
+  health: () => apiClient.get('/health'),
+
+  // Get web vitals for time range
+  getWebVitals: (startMs, endMs) =>
+    apiClient.get('/vitals/range', {
+      params: { startMs, endMs },
+    }),
+
+  // Get errors for time range
+  getErrors: (startMs, endMs) =>
+    apiClient.get('/errors/range', {
+      params: { startMs, endMs },
+    }),
+
+  // Get vitals by session
+  getSessionVitals: (sessionId) =>
+    apiClient.get(`/sessions/${sessionId}/vitals`),
+
+  // Get errors by session
+  getSessionErrors: (sessionId) =>
+    apiClient.get(`/sessions/${sessionId}/errors`),
+};
+
+export default apiClient;
+```
+
+---
+
+## Step 2: Create Custom Hook for Data Fetching
+
+Create `src/hooks/useRUMData.js`:
+
+```javascript
+import { useState, useEffect } from 'react';
+import { rumAPI } from '../services/apiService';
+
+export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
+  const [data, setData] = useState({
+    webVitals: [],
+    errors: [],
+    loading: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setData(prev => ({ ...prev, loading: true, error: null }));
+        
+        const endTime = Date.now();
+        const startTime = endTime - timeRangeMs;
+
+        const [vitalsRes, errorsRes] = await Promise.all([
+          rumAPI.getWebVitals(startTime, endTime),
+          rumAPI.getErrors(startTime, endTime),
+        ]);
+
+        setData({
+          webVitals: vitalsRes.data,
+          errors: errorsRes.data,
+          loading: false,
+          error: null,
+        });
+      } catch (err) {
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          error: err.message,
+        }));
+      }
+    };
+
+    fetchData();
+    
+    // Refetch every 10 seconds for real-time updates
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, [timeRangeMs]);
+
+  return data;
+};
+```
+
+---
+
+## Step 3: Create Metrics Card Component
+
+Create `src/components/MetricsCard.jsx`:
+
+```javascript
+import React from 'react';
+
+export const MetricsCard = ({ 
+  title, 
+  value, 
+  unit = '', 
+  status = 'good', 
+  icon = '📊' 
+}) => {
+  const statusColors = {
+    good: 'bg-green-100 text-green-800',
+    'needs-improvement': 'bg-yellow-100 text-yellow-800',
+    poor: 'bg-red-100 text-red-800',
+  };
+
+  return (
+    <div className={`p-6 rounded-lg shadow-md ${statusColors[status] || statusColors.good}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold opacity-75">{title}</p>
+          <p className="text-3xl font-bold mt-2">
+            {typeof value === 'number' ? value.toFixed(2) : value}
+            <span className="text-lg ml-1">{unit}</span>
+          </p>
+        </div>
+        <span className="text-4xl">{icon}</span>
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## Step 4: Create Web Vitals Chart Component
+
+Create `src/components/WebVitalsChart.jsx`:
+
+```javascript
+import React, { useMemo } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { format } from 'date-fns';
+
+export const WebVitalsChart = ({ data }) => {
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const grouped = {};
+
+    data.forEach(item => {
+      const timestamp = new Date(item.eventTimestamp).getTime();
+      if (!grouped[timestamp]) {
+        grouped[timestamp] = {
+          time: format(new Date(item.eventTimestamp), 'HH:mm:ss'),
+          timestamp,
+        };
+      }
+      grouped[timestamp][item.metricName] = item.value;
+    });
+
+    return Object.values(grouped)
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(-30); // Last 30 data points
+  }, [data]);
+
+  if (chartData.length === 0) {
+    return <div className="text-center text-gray-500">No web vitals data available</div>;
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-bold mb-4">📈 Web Vitals Over Time</h2>
+      <ResponsiveContainer width="100%" height={400}>
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="LCP" stroke="#8884d8" isAnimationActive={false} />
+          <Line type="monotone" dataKey="FCP" stroke="#82ca9d" isAnimationActive={false} />
+          <Line type="monotone" dataKey="INP" stroke="#ffc658" isAnimationActive={false} />
+          <Line type="monotone" dataKey="CLS" stroke="#ff7c7c" isAnimationActive={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+```
+
+---
+
+## Step 5: Create Errors Chart Component
+
+Create `src/components/ErrorsChart.jsx`:
+
+```javascript
+import React, { useMemo } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+export const ErrorsChart = ({ data }) => {
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const grouped = {};
+
+    data.forEach(item => {
+      const key = item.errorType;
+      if (!grouped[key]) {
+        grouped[key] = { type: key, count: 0 };
+      }
+      grouped[key].count += 1;
+    });
+
+    return Object.values(grouped);
+  }, [data]);
+
+  if (chartData.length === 0) {
+    return <div className="text-center text-gray-500">No errors recorded</div>;
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-bold mb-4">❌ Errors by Type</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="type" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="count" fill="#ff7c7c" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+```
+
+---
+
+## Step 6: Create Sessions Table Component
+
+Create `src/components/SessionsTable.jsx`:
+
+```javascript
+import React, { useMemo } from 'react';
+import { format } from 'date-fns';
+
+export const SessionsTable = ({ webVitals, errors }) => {
+  const sessions = useMemo(() => {
+    const sessionMap = {};
+
+    webVitals.forEach(item => {
+      if (!sessionMap[item.sessionId]) {
+        sessionMap[item.sessionId] = {
+          sessionId: item.sessionId,
+          pageUrl: item.pageUrl,
+          vitalsCount: 0,
+          errorsCount: 0,
+          lastSeen: item.createdAt,
+        };
+      }
+      sessionMap[item.sessionId].vitalsCount += 1;
+      sessionMap[item.sessionId].lastSeen = item.createdAt;
+    });
+
+    errors.forEach(item => {
+      if (!sessionMap[item.sessionId]) {
+        sessionMap[item.sessionId] = {
+          sessionId: item.sessionId,
+          pageUrl: item.pageUrl,
+          vitalsCount: 0,
+          errorsCount: 0,
+          lastSeen: item.createdAt,
+        };
+      }
+      sessionMap[item.sessionId].errorsCount += 1;
+      sessionMap[item.sessionId].lastSeen = item.createdAt;
+    });
+
+    return Object.values(sessionMap).sort(
+      (a, b) => new Date(b.lastSeen) - new Date(a.lastSeen)
+    );
+  }, [webVitals, errors]);
+
+  if (sessions.length === 0) {
+    return <div className="text-center text-gray-500">No sessions data</div>;
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-bold mb-4">👥 User Sessions</h2>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-2 text-left">Session ID</th>
+              <th className="px-4 py-2 text-left">Page URL</th>
+              <th className="px-4 py-2 text-center">Vitals</th>
+              <th className="px-4 py-2 text-center">Errors</th>
+              <th className="px-4 py-2 text-left">Last Seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.slice(0, 10).map((session) => (
+              <tr key={session.sessionId} className="border-b hover:bg-gray-50">
+                <td className="px-4 py-2 font-mono text-xs">{session.sessionId.slice(0, 12)}...</td>
+                <td className="px-4 py-2 truncate text-xs">{session.pageUrl}</td>
+                <td className="px-4 py-2 text-center">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {session.vitalsCount}
+                  </span>
+                </td>
+                <td className="px-4 py-2 text-center">
+                  <span className={`px-2 py-1 rounded ${
+                    session.errorsCount > 0
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {session.errorsCount}
+                  </span>
+                </td>
+                <td className="px-4 py-2 text-xs">
+                  {format(new Date(session.lastSeen), 'HH:mm:ss')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## Step 7: Create Loading Spinner Component
+
+Create `src/components/LoadingSpinner.jsx`:
+
+```javascript
+import React from 'react';
+
+export const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin">
+      <div className="border-4 border-gray-300 border-t-blue-500 rounded-full w-8 h-8"></div>
+    </div>
+    <span className="ml-3 text-gray-600">Loading RUM data...</span>
+  </div>
+);
+```
+
+---
+
+## Step 8: Create Main Dashboard Component
+
+Create `src/components/Dashboard.jsx`:
+
+```javascript
+import React, { useState } from 'react';
+import { useRUMData } from '../hooks/useRUMData';
+import { MetricsCard } from './MetricsCard';
+import { WebVitalsChart } from './WebVitalsChart';
+import { ErrorsChart } from './ErrorsChart';
+import { SessionsTable } from './SessionsTable';
+import { LoadingSpinner } from './LoadingSpinner';
+
+export const Dashboard = () => {
+  const [timeRange, setTimeRange] = useState(3600000); // 1 hour
+  const { webVitals, errors, loading, error } = useRUMData(timeRange);
+
+  const calculateMetrics = () => {
+    if (webVitals.length === 0) {
+      return {
+        avgLCP: 0,
+        avgCLS: 0,
+        errorCount: 0,
+        sessionCount: 0,
+      };
+    }
+
+    const lcpValues = webVitals.filter(v => v.metricName === 'LCP').map(v => v.value);
+    const clsValues = webVitals.filter(v => v.metricName === 'CLS').map(v => v.value);
+    const sessions = new Set(webVitals.map(v => v.sessionId));
+
+    return {
+      avgLCP: lcpValues.length > 0 ? lcpValues.reduce((a, b) => a + b) / lcpValues.length : 0,
+      avgCLS: clsValues.length > 0 ? clsValues.reduce((a, b) => a + b) / clsValues.length : 0,
+      errorCount: errors.length,
+      sessionCount: sessions.size,
+    };
+  };
+
+  const metrics = calculateMetrics();
+
+  const timeRangeOptions = [
+    { label: '15 min', value: 900000 },
+    { label: '1 hour', value: 3600000 },
+    { label: '24 hours', value: 86400000 },
+  ];
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-red-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold text-red-800 mb-4">❌ Connection Error</h1>
+          <p className="text-red-600">
+            Unable to connect to backend: {error}
+          </p>
+          <p className="text-red-600 mt-2">
+            Make sure your Spring Boot backend is running on http://localhost:8080
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <h1 className="text-3xl font-bold text-gray-900">📊 RUM Dashboard</h1>
+          <p className="text-gray-600 mt-2">Real User Monitoring Analytics</p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Time Range Selector */}
+        <div className="mb-6 flex gap-2">
+          {timeRangeOptions.map(option => (
+            <button
+              key={option.value}
+              onClick={() => setTimeRange(option.value)}
+              className={`px-4 py-2 rounded font-medium transition-colors ${
+                timeRange === option.value
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <>
+            {/* Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <MetricsCard
+                title="Avg LCP"
+                value={metrics.avgLCP}
+                unit="ms"
+                status={metrics.avgLCP <= 2500 ? 'good' : metrics.avgLCP <= 4000 ? 'needs-improvement' : 'poor'}
+                icon="⚡"
+              />
+              <MetricsCard
+                title="Avg CLS"
+                value={metrics.avgCLS}
+                unit=""
+                status={metrics.avgCLS <= 0.1 ? 'good' : metrics.avgCLS <= 0.25 ? 'needs-improvement' : 'poor'}
+                icon="📐"
+              />
+              <MetricsCard
+                title="Error Count"
+                value={metrics.errorCount}
+                unit="errors"
+                status={metrics.errorCount === 0 ? 'good' : 'poor'}
+                icon="❌"
+              />
+              <MetricsCard
+                title="Sessions"
+                value={metrics.sessionCount}
+                unit="active"
+                icon="👥"
+              />
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <WebVitalsChart data={webVitals} />
+              <ErrorsChart data={errors} />
+            </div>
+
+            {/* Sessions Table */}
+            <SessionsTable webVitals={webVitals} errors={errors} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## Step 9: Update App.jsx
+
+```javascript
+import React from 'react';
+import { Dashboard } from './components/Dashboard';
+import './App.css';
+
+function App() {
+  return <Dashboard />;
+}
+
+export default App;
+```
+
+---
+
+## Step 10: Run the Dashboard
+
+```bash
+npm start
+```
+
+The dashboard will open at `http://localhost:3000`
+
+---
+
+## Features
+
+✅ **Real-time Data Updates** - Auto-refreshes every 10 seconds
+✅ **Web Vitals Visualization** - Line charts showing LCP, FCP, INP, CLS trends
+✅ **Error Tracking** - Bar charts showing error types and counts
+✅ **User Sessions** - Table displaying active sessions
+✅ **Metrics Cards** - Quick overview of key performance indicators
+✅ **Time Range Filtering** - View data for 15 min, 1 hour, or 24 hours
+✅ **Responsive Design** - Works on mobile, tablet, and desktop
+
+---
+
+## File Summary
+
+| File | Purpose |
+|------|---------|
+| `apiService.js` | Handles all API calls to backend |
+| `useRUMData.js` | Custom hook for fetching and managing RUM data |
+| `MetricsCard.jsx` | Displays key metrics in card format |
+| `WebVitalsChart.jsx` | Line chart for web vitals trends |
+| `ErrorsChart.jsx` | Bar chart for error distribution |
+| `SessionsTable.jsx` | Table showing user sessions |
+| `LoadingSpinner.jsx` | Loading indicator component |
+| `Dashboard.jsx` | Main dashboard layout and controls |
+
+---
+
+## Customization
+
+### Change API URL
+Update `src/services/apiService.js`:
+```javascript
+const API_BASE_URL = 'http://your-backend-url:8080/api/rum';
+```
+
+### Add More Charts
+Create new chart components and import in `Dashboard.jsx`
+
+### Customize Colors
+Modify Tailwind classes in components or update `tailwind.config.js`
+
+---
+
+## Next Steps
+
+1. Run both backend and dashboard
+2. Generate test data from your HTML test page
+3. Watch real-time metrics appear on the dashboard
+4. Deploy dashboard to your infrastructure

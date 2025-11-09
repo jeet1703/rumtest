@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUM Wrapper Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        .log-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .log-entry.info { color: #0c5460; background: #cfe2ff; padding: 5px; margin: 2px 0; }
+        .log-entry.success { color: #155724; background: #d1e7dd; padding: 5px; margin: 2px 0; }
+        .log-entry.error { color: #721c24; background: #f8d7da; padding: 5px; margin: 2px 0; }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.running {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.stopped {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .metrics-table th, .metrics-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .metrics-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 RUM Wrapper Testing Dashboard</h1>
+
+    <div class="info-box">
+        <strong>✓ Status:</strong> Backend running on http://localhost:8080 | 
+        <strong>Wrapper:</strong> Loaded from dist/index.js | 
+        <strong>Mode:</strong> Debug Enabled
+    </div>
+
+    <!-- Status Section -->
+    <div class="section">
+        <h2>📊 Monitor Status</h2>
+        <div id="status" class="status stopped">Status: STOPPED</div>
+        <div id="sessionInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;"></div>
+    </div>
+
+    <!-- Control Section -->
+    <div class="section">
+        <h2>🎮 Controls</h2>
+        <button onclick="startMonitoring()">▶️ Start Monitoring</button>
+        <button onclick="stopMonitoring()">⏹️ Stop Monitoring</button>
+        <button class="danger" onclick="triggerTestError()">❌ Trigger JS Error</button>
+        <button onclick="simulateUserInteraction()">👆 Simulate User Interaction</button>
+        <button onclick="loadHeavyContent()">📊 Load Heavy Content (LCP)</button>
+        <button onclick="clearLogs()">🗑️ Clear Logs</button>
+    </div>
+
+    <!-- Browser Console Logs -->
+    <div class="section">
+        <h2>📝 Event Logs</h2>
+        <div id="logs" class="log-box">
+            <div class="log-entry info">Waiting for initialization...</div>
+        </div>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="section">
+        <h2>⚙️ Configuration</h2>
+        <table class="metrics-table">
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Backend URL</td>
+                <td>http://localhost:8080/api/rum</td>
+            </tr>
+            <tr>
+                <td>Flush Interval</td>
+                <td>5 seconds</td>
+            </tr>
+            <tr>
+                <td>Batch Size</td>
+                <td>50 events</td>
+            </tr>
+            <tr>
+                <td>Debug Mode</td>
+                <td>✓ Enabled</td>
+            </tr>
+            <tr>
+                <td>Enabled Metrics</td>
+                <td>LCP, FCP, CLS, INP, TTFB</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="section">
+        <h2>📋 Testing Instructions</h2>
+        <ol>
+            <li><strong>Backend Check:</strong> Make sure Spring Boot backend is running on port 8080</li>
+            <li><strong>Start Monitoring:</strong> Click "Start Monitoring" to begin capturing metrics</li>
+            <li><strong>Generate Events:</strong> Use the control buttons to create test data</li>
+            <li><strong>View Logs:</strong> Watch the Event Logs section for captured events</li>
+            <li><strong>Browser Console:</strong> Open DevTools (F12) → Console to see detailed debug logs</li>
+            <li><strong>Backend Logs:</strong> Check your backend console for received batches</li>
+            <li><strong>Database:</strong> Query H2 console (http://localhost:8080/h2-console) to verify stored data</li>
+            <li><strong>Stop Monitoring:</strong> Click "Stop Monitoring" to halt and flush remaining events</li>
+        </ol>
+    </div>
+
+    <!-- Script Section -->
+    <script type="module">
+        // Import directly from dist folder (same directory as this HTML)
+        import { RUMWrapper } from './dist/index.js';
+
+        // Global wrapper instance
+        window.rumWrapper = null;
+
+        // Initialize wrapper
+        window.initializeWrapper = function() {
+            try {
+                window.rumWrapper = new RUMWrapper({
+                    backendUrl: 'http://localhost:8080/api/rum',
+                    flushIntervalMs: 5000,
+                    batchSize: 50,
+                    debug: true,
+                    enabledMetrics: ['LCP', 'FCP', 'CLS', 'INP', 'TTFB']
+                });
+                
+                addLog('success', '✓ Wrapper initialized successfully');
+                addLog('info', 'Backend: http://localhost:8080/api/rum');
+                addLog('info', 'Metrics: LCP, FCP, CLS, INP, TTFB');
+            } catch (error) {
+                addLog('error', `✗ Failed to initialize wrapper: ${error.message}`);
+                console.error('Wrapper init error:', error);
+            }
+        };
+
+        // Start monitoring
+        window.startMonitoring = function() {
+            if (!window.rumWrapper) {
+                addLog('info', 'Initializing wrapper first...');
+                window.initializeWrapper();
+            }
+            
+            try {
+                window.rumWrapper.start();
+                updateStatus(true);
+                addLog('success', '✓ Monitoring STARTED - Collecting metrics');
+                
+                // Show session info
+                const sessionInfo = document.getElementById('sessionInfo');
+                sessionInfo.textContent = 'Monitor is active and collecting web vitals, errors, and user events...';
+            } catch (error) {
+                addLog('error', `✗ Error starting monitoring: ${error.message}`);
+            }
+        };
+
+        // Stop monitoring
+        window.stopMonitoring = function() {
+            if (window.rumWrapper) {
+                try {
+                    window.rumWrapper.stop();
+                    updateStatus(false);
+                    addLog('success', '✓ Monitoring STOPPED - Remaining events flushed to backend');
+                } catch (error) {
+                    addLog('error', `✗ Error stopping monitoring: ${error.message}`);
+                }
+            } else {
+                addLog('error', '✗ Wrapper not initialized');
+            }
+        };
+
+        // Trigger a test error
+        window.triggerTestError = function() {
+            addLog('info', 'Triggering JavaScript error...');
+            setTimeout(() => {
+                throw new Error('This is a test error from the test page');
+            }, 100);
+        };
+
+        // Simulate user interaction
+        window.simulateUserInteraction = function() {
+            addLog('info', 'Simulating user interaction...');
+            
+            // Simulate heavy computation to generate INP metric
+            for (let i = 0; i < 10000000; i++) {
+                Math.sqrt(i);
+            }
+            
+            addLog('success', '✓ User interaction simulated');
+        };
+
+        // Load heavy content to simulate LCP
+        window.loadHeavyContent = function() {
+            addLog('info', 'Simulating heavy content load...');
+            
+            const div = document.createElement('div');
+            div.style.width = '500px';
+            div.style.height = '500px';
+            div.style.backgroundColor = '#007bff';
+            div.style.margin = '10px';
+            div.textContent = 'Heavy Content Block';
+            div.style.color = 'white';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.justifyContent = 'center';
+            div.style.fontSize = '20px';
+            
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.remove();
+                addLog('success', '✓ Heavy content removed');
+            }, 2000);
+        };
+
+        // Clear logs
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+            addLog('info', 'Logs cleared');
+        };
+
+        // Update status display
+        function updateStatus(isRunning) {
+            const statusEl = document.getElementById('status');
+            if (isRunning) {
+                statusEl.textContent = 'Status: RUNNING ✓';
+                statusEl.className = 'status running';
+            } else {
+                statusEl.textContent = 'Status: STOPPED ✗';
+                statusEl.className = 'status stopped';
+            }
+        }
+
+        // Add log entry
+        function addLog(type, message) {
+            const logsEl = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logsEl.appendChild(entry);
+            logsEl.scrollTop = logsEl.scrollHeight;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            addLog('info', '📄 Page loaded');
+            addLog('info', 'Initializing RUM wrapper...');
+            window.initializeWrapper();
+            addLog('success', '✓ Ready to start monitoring');
+            addLog('info', 'Click "Start Monitoring" to begin');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.rumWrapper) {
+                window.rumWrapper.stop();
+                addLog('info', 'Wrapper stopped on page unload');
+            }
+        });
+
+        // Expose addLog globally for testing
+        window.addLog = addLog;
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "rum-sdk",
+  "version": "1.0.0",
+  "main": "index.js",
+ "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepublish": "npm run build"
+  },
+  "keywords": ["rum", "monitoring", "web-vitals", "performance"],
+  "author": "Prabhjeet Singh",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "undici-types": "^7.16.0"
+  },
+  "description": ""
+}

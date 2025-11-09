@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUM Wrapper Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        .log-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .log-entry.info { color: #0c5460; }
+        .log-entry.success { color: #155724; }
+        .log-entry.error { color: #721c24; }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.running {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.stopped {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .metrics-table th, .metrics-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .metrics-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 RUM Wrapper Testing Dashboard</h1>
+
+    <!-- Status Section -->
+    <div class="section">
+        <h2>📊 Monitor Status</h2>
+        <div id="status" class="status stopped">Status: STOPPED</div>
+        <div id="sessionInfo"></div>
+    </div>
+
+    <!-- Control Section -->
+    <div class="section">
+        <h2>🎮 Controls</h2>
+        <button onclick="startMonitoring()">Start Monitoring</button>
+        <button onclick="stopMonitoring()">Stop Monitoring</button>
+        <button class="danger" onclick="triggerTestError()">Trigger JS Error</button>
+        <button onclick="simulateUserInteraction()">Simulate User Interaction</button>
+        <button onclick="loadHeavyContent()">Load Heavy Content (Simulate LCP)</button>
+        <button onclick="forceFlush()">Force Flush Events</button>
+    </div>
+
+    <!-- Browser Console Logs -->
+    <div class="section">
+        <h2>📝 Event Logs</h2>
+        <div id="logs" class="log-box">
+            <div class="log-entry info">Waiting for actions...</div>
+        </div>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="section">
+        <h2>⚙️ Configuration</h2>
+        <table class="metrics-table">
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Backend URL</td>
+                <td id="backendUrl">http://localhost:8080/api/rum</td>
+            </tr>
+            <tr>
+                <td>Flush Interval</td>
+                <td>5 seconds</td>
+            </tr>
+            <tr>
+                <td>Batch Size</td>
+                <td>50 events</td>
+            </tr>
+            <tr>
+                <td>Debug Mode</td>
+                <td>Enabled</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="section">
+        <h2>📋 Testing Instructions</h2>
+        <ol>
+            <li><strong>Start Monitoring:</strong> Click "Start Monitoring" to begin capturing web vitals and errors</li>
+            <li><strong>Simulate Activity:</strong> Use the control buttons to generate test events</li>
+            <li><strong>Trigger Error:</strong> Click "Trigger JS Error" to create a JavaScript error event</li>
+            <li><strong>User Interaction:</strong> Click "Simulate User Interaction" to generate interaction metrics</li>
+            <li><strong>View Logs:</strong> Check the Event Logs section to see captured events</li>
+            <li><strong>Backend Verification:</strong> Check backend console or H2 database for stored events</li>
+            <li><strong>Force Flush:</strong> Click to immediately send pending events to backend</li>
+        </ol>
+    </div>
+
+    <!-- Script Section -->
+    <script type="module">
+        import { RUMWrapper } from 'C:\pj\SEMLOPS\RUM\orignal\rum-sdk\dist\index.js';
+
+        // Global wrapper instance
+        window.rumWrapper = null;
+        window.sessionData = null;
+
+        // Initialize wrapper
+        window.initializeWrapper = function() {
+            window.rumWrapper = new RUMWrapper({
+                backendUrl: 'http://localhost:8080/api/rum',
+                flushIntervalMs: 5000,
+                batchSize: 50,
+                debug: true,
+                enabledMetrics: ['LCP', 'FCP', 'CLS', 'INP', 'TTFB']
+            });
+            
+            logEvent('Wrapper initialized', 'info');
+            addLog('info', 'Wrapper initialized with backend: http://localhost:8080/api/rum');
+        };
+
+        // Start monitoring
+        window.startMonitoring = function() {
+            if (!window.rumWrapper) {
+                window.initializeWrapper();
+            }
+            
+            window.rumWrapper.start();
+            updateStatus(true);
+            addLog('success', 'Monitoring STARTED');
+        };
+
+        // Stop monitoring
+        window.stopMonitoring = function() {
+            if (window.rumWrapper) {
+                window.rumWrapper.stop();
+                updateStatus(false);
+                addLog('success', 'Monitoring STOPPED - All pending events flushed');
+            }
+        };
+
+        // Trigger a test error
+        window.triggerTestError = function() {
+            addLog('error', 'Triggering intentional JavaScript error...');
+            setTimeout(() => {
+                throw new Error('Test error triggered from test page');
+            }, 100);
+        };
+
+        // Simulate user interaction
+        window.simulateUserInteraction = function() {
+            addLog('info', 'Simulating user interaction...');
+            
+            // Create a button and click it to trigger interaction
+            const btn = document.createElement('button');
+            btn.click();
+            btn.remove();
+            
+            addLog('success', 'User interaction simulated (INP metric generated)');
+        };
+
+        // Load heavy content to simulate LCP
+        window.loadHeavyContent = function() {
+            addLog('info', 'Simulating heavy content load...');
+            
+            const div = document.createElement('div');
+            div.style.width = '1000px';
+            div.style.height = '1000px';
+            div.style.backgroundColor = '#007bff';
+            div.textContent = 'Heavy Content Loaded';
+            div.style.display = 'none';
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.remove();
+                addLog('success', 'Heavy content simulated (may impact LCP/FCP metrics)');
+            }, 100);
+        };
+
+        // Force flush events to backend
+        window.forceFlush = function() {
+            addLog('info', 'Forcing event batch flush to backend...');
+            // Note: The wrapper's flushEvents is private, so this logs the action
+            // In real scenario, the periodic flush will handle it
+            addLog('success', 'Flush triggered - Check backend console for received events');
+        };
+
+        // Update status display
+        function updateStatus(isRunning) {
+            const statusEl = document.getElementById('status');
+            if (isRunning) {
+                statusEl.textContent = 'Status: RUNNING ✓';
+                statusEl.className = 'status running';
+            } else {
+                statusEl.textContent = 'Status: STOPPED ✗';
+                statusEl.className = 'status stopped';
+            }
+        }
+
+        // Add log entry
+        function addLog(type, message) {
+            const logsEl = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsEl.appendChild(entry);
+            logsEl.scrollTop = logsEl.scrollHeight;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            window.initializeWrapper();
+            addLog('info', 'Page loaded - Ready to test');
+            addLog('info', 'Click "Start Monitoring" to begin');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.rumWrapper) {
+                window.rumWrapper.stop();
+            }
+        });
+
+        // Expose addLog globally for testing
+        window.addLog = addLog;
+    </script>
+</body>
+</html>

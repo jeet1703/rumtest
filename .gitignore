@@ -1,0 +1,103 @@
+# -----------------------------------------------------------
+# Node / React (Frontend)
+# -----------------------------------------------------------
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Build output
+build/
+dist/
+.out/
+.next/
+.cache/
+.temp/
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.tgz
+
+# -----------------------------------------------------------
+# Spring Boot / Java (Backend)
+# -----------------------------------------------------------
+# Compiled class files
+target/
+build/
+out/
+*.class
+
+# Maven / Gradle
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+bin/
+tmp/
+*.swp
+*.bak
+*.tmp
+
+# Logs
+*.log
+
+# Environment & Config
+application-*.yml
+application-*.yaml
+application-*.properties
+*.env
+
+# -----------------------------------------------------------
+# General
+# -----------------------------------------------------------
+# OS-generated
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Backup files
+*.bak
+*.tmp
+*.old
+
+# Ignore local tools and scripts
+local/
+scripts/local/
