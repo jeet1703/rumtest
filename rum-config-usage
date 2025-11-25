@@ -1,0 +1,410 @@
+# RUM SDK - Configuration & Usage Guide
+
+## Step 1: Create rum.config.ts
+
+Create this file at the root of your project:
+
+```typescript
+// rum.config.ts
+import { SDKConfig } from './src/types';
+
+const rumConfig: SDKConfig = {
+  // Backend URL where events will be sent
+  backendUrl: process.env.REACT_APP_RUM_BACKEND_URL || 'http://localhost:8080/api/rum',
+  
+  // Auto-start monitoring when SDK initializes
+  autoStart: true,
+  
+  // Flush events every 5 seconds
+  flushIntervalMs: 5000,
+  
+  // Send batch when 50 events collected
+  batchSize: 50,
+  
+  // Enable debug logging
+  debug: process.env.NODE_ENV === 'development',
+  
+  // Which metrics to track
+  metrics: {
+    webVitals: true,           // LCP, FCP, CLS, INP, TTFB
+    pageSpeed: true,           // Page load timing
+    pageViews: true,           // Track page navigation
+    engagement: true,          // Time on page, scroll depth
+    errors: true,              // JavaScript errors
+    networkErrors: true,       // Network request failures
+    resourcePerformance: false, // Individual resource timing (high volume)
+    userActions: false,        // Click tracking (high volume)
+    consoleLogs: false,        // Console logs (dev only)
+    longTasks: false,          // Long task detection
+    cspViolations: false,      // CSP violations
+    enabledVitals: ['LCP', 'FCP', 'CLS', 'INP', 'TTFB'],
+  },
+  
+  // User tracking
+  user: {
+    enableUserTracking: true,
+    userIdStorageKey: 'rum_user_id',
+    sessionIdStorageKey: 'rum_session_id',
+  },
+  
+  // User action tracking (clicks, form inputs)
+  userActions: {
+    trackClicks: true,
+    trackFormInputs: true,
+    trackRageClicks: true,
+    rageClickThreshold: 3,      // 3 clicks = rage click
+    rageClickTimeWindow: 1000,  // Within 1 second
+  },
+  
+  // Console log capture
+  consoleLogs: {
+    captureLog: false,
+    captureInfo: false,
+    captureWarn: true,
+    captureError: true,
+    maxMessageLength: 500,
+  },
+  
+  // Sampling (reduce load in production)
+  sampling: {
+    sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0, // 10% in production
+    throttleMs: 0,
+  },
+  
+  // Privacy & data masking
+  privacy: {
+    maskUserData: process.env.NODE_ENV === 'production',
+    allowedDomains: ['localhost', 'example.com'],
+  },
+};
+
+export default rumConfig;
+```
+
+---
+
+## Step 2: Usage in React
+
+### Option A: Using Hooks (Recommended)
+
+```typescript
+// src/hooks/useRUM.ts
+import { useEffect, useRef } from 'react';
+import { RUMWrapper } from '../rum-sdk/src/RUMWrapper';
+import rumConfig from '../rum.config';
+
+export function useRUM() {
+  const rumRef = useRef<RUMWrapper | null>(null);
+
+  useEffect(() => {
+    rumRef.current = new RUMWrapper(rumConfig);
+    console.log('RUM monitoring started');
+    
+    return () => {
+      rumRef.current?.stop();
+    };
+  }, []);
+
+  return rumRef.current;
+}
+```
+
+### Use the Hook in Your App
+
+```typescript
+// src/App.tsx
+import React, { useEffect } from 'react';
+import { useRUM } from './hooks/useRUM';
+
+function App() {
+  const rum = useRUM();
+
+  useEffect(() => {
+    // Optionally set user after authentication
+    if (rum) {
+      rum.setUser('user-12345', {
+        name: 'John Doe',
+        email: 'john@example.com',
+        plan: 'premium',
+      });
+    }
+  }, [rum]);
+
+  return (
+    <div className="app">
+      <h1>My App</h1>
+      {/* Your app content */}
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## Step 3: Usage in HTML/Vanilla JavaScript
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My App</title>
+</head>
+<body>
+  <h1>Welcome</h1>
+
+  <script type="module">
+    import { RUMWrapper } from './dist/index.js';
+    import rumConfig from './rum.config.js';
+
+    // Initialize wrapper with config
+    const rum = new RUMWrapper(rumConfig);
+
+    // Set user after they log in
+    document.getElementById('login-btn').addEventListener('click', () => {
+      rum.setUser('user-12345', {
+        name: 'User Name',
+        email: 'user@example.com',
+      });
+    });
+
+    // Track custom events
+    document.getElementById('purchase-btn').addEventListener('click', () => {
+      rum.trackCustomEvent('purchase_completed', {
+        orderId: '12345',
+        amount: 99.99,
+      });
+    });
+  </script>
+</body>
+</html>
+```
+
+---
+
+## Step 4: Usage in Angular
+
+```typescript
+// src/app/services/rum.service.ts
+import { Injectable, OnDestroy } from '@angular/core';
+import { RUMWrapper } from 'rum-sdk';
+import rumConfig from '../../rum.config';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class RumService implements OnDestroy {
+  private rum: RUMWrapper;
+
+  constructor() {
+    this.rum = new RUMWrapper(rumConfig);
+  }
+
+  public trackEvent(eventName: string, properties?: Record<string, any>) {
+    this.rum.trackCustomEvent(eventName, properties);
+  }
+
+  public setUser(userId: string, properties?: Record<string, any>) {
+    this.rum.setUser(userId, properties);
+  }
+
+  ngOnDestroy(): void {
+    this.rum.stop();
+  }
+}
+```
+
+---
+
+## Step 5: What Each Metric Tracks
+
+### Web Vitals (Always Enabled by Default)
+- **LCP (Largest Contentful Paint)**: Time for largest visible element to render
+- **FCP (First Contentful Paint)**: Time for first pixel to appear
+- **CLS (Cumulative Layout Shift)**: Visual instability during page load
+- **INP (Interaction to Next Paint)**: Responsiveness to user interactions
+- **TTFB (Time to First Byte)**: Server response time
+
+### Page Speed
+- **loadTime**: Total time to load page
+- **domContentLoaded**: When DOM is ready
+- **domInteractive**: When DOM becomes interactive
+- **resourceLoadTime**: Time for resources to complete loading
+
+### Engagement
+- **timeOnPage**: How long user spent on page
+- **scrollDepth**: How far down user scrolled (0-100%)
+- **interactionCount**: Number of interactions (clicks, inputs, etc.)
+- **exitType**: How user left the page (navigation, close, refresh)
+
+### Page Views
+- **pagePath**: URL path
+- **pageTitle**: Page title
+- **referrer**: Where user came from
+- **previousPage**: Last page visited
+
+### Errors
+- **message**: Error message
+- **source**: File where error occurred
+- **lineno**: Line number
+- **colno**: Column number
+- **stack**: Stack trace
+- **errorType**: 'javascript' | 'unhandledRejection' | 'network' | 'resource'
+- **severity**: 'low' | 'medium' | 'high' | 'critical'
+- **breadcrumbs**: User actions leading to error
+
+### Network Errors
+- **url**: Request URL
+- **method**: HTTP method (GET, POST, etc.)
+- **statusCode**: HTTP status code
+- **duration**: Request duration (ms)
+- **errorType**: 'timeout' | 'failed' | 'aborted'
+
+### User Actions (Optional - High Volume)
+- **click**: Element clicked
+- **input**: Form input changed
+- **submit**: Form submitted
+- **rageClick**: Same element clicked multiple times rapidly
+- **deadClick**: Click with no response
+
+### Custom Events
+- **eventName**: Name of your event
+- **properties**: Any custom properties
+- **value**: Optional numeric value
+
+---
+
+## Step 6: Testing Your Configuration
+
+### Test 1: Verify SDK is Initialized
+
+```typescript
+// In browser console
+console.log(window.rum) // Should show RUMWrapper instance
+```
+
+### Test 2: Track Custom Event
+
+```typescript
+// In browser console
+rum.trackCustomEvent('test_event', { timestamp: new Date().toISOString() })
+
+// Check network tab - should see POST request
+```
+
+### Test 3: Generate Error
+
+```typescript
+// In browser console
+throw new Error('Test error')
+
+// Should capture error and send to backend
+```
+
+### Test 4: Check Events Queue
+
+```typescript
+// In browser console
+rum.eventsQueue.length // Shows number of pending events
+```
+
+---
+
+## Environment-Specific Configs
+
+### Development Config
+```typescript
+// rum.config.development.ts
+const devConfig: SDKConfig = {
+  backendUrl: 'http://localhost:8080/api/rum',
+  debug: true,
+  sampling: { sampleRate: 1.0 },
+  metrics: {
+    consoleLogs: true,
+    resourcePerformance: true,
+    userActions: true,
+  },
+};
+```
+
+### Production Config
+```typescript
+// rum.config.production.ts
+const prodConfig: SDKConfig = {
+  backendUrl: 'https://rum.example.com/api/rum',
+  debug: false,
+  sampling: { sampleRate: 0.1 }, // 10% sampling
+  metrics: {
+    consoleLogs: false,
+    resourcePerformance: false,
+    userActions: false,
+  },
+  privacy: { maskUserData: true },
+};
+```
+
+### Load Config Based on Environment
+```typescript
+// rum.config.ts
+let config: SDKConfig;
+
+if (process.env.NODE_ENV === 'production') {
+  config = require('./rum.config.production').default;
+} else {
+  config = require('./rum.config.development').default;
+}
+
+export default config;
+```
+
+---
+
+## Troubleshooting
+
+### Events Not Being Sent
+1. Check browser console for errors
+2. Verify `backendUrl` is correct
+3. Check network tab - should see POST requests
+4. Ensure backend is running
+
+### Too Many Events
+1. Disable high-volume metrics: `resourcePerformance: false, userActions: false`
+2. Enable sampling: `sampling: { sampleRate: 0.1 }`
+3. Increase batch size: `batchSize: 100`
+
+### Memory Issues
+1. Reduce breadcrumb history
+2. Enable sampling
+3. Disable console log capture
+4. Disable resource performance tracking
+
+---
+
+## API Reference
+
+### Initialize SDK
+```typescript
+const rum = new RUMWrapper(rumConfig);
+```
+
+### Start Monitoring
+```typescript
+rum.start();
+```
+
+### Stop Monitoring
+```typescript
+rum.stop();
+```
+
+### Track Custom Event
+```typescript
+rum.trackCustomEvent('event_name', { property: 'value' }, 123);
+```
+
+### Set User
+```typescript
+rum.setUser('user-id', { name: 'User Name', email: 'user@example.com' });
+```
+

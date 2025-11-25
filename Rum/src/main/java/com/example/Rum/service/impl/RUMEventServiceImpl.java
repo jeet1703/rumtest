@@ -1,12 +1,8 @@
 package com.example.Rum.service.impl;
 
-
-import com.example.Rum.dto.ErrorEventDTO;
-import com.example.Rum.dto.WebVitalEventDTO;
-import com.example.Rum.model.ErrorEvent;
-import com.example.Rum.model.WebVitalEvent;
-import com.example.Rum.repository.ErrorEventRepository;
-import com.example.Rum.repository.WebVitalEventRepository;
+import com.example.Rum.dto.*;
+import com.example.Rum.model.*;
+import com.example.Rum.repository.*;
 import com.example.Rum.service.RUMEventService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,22 +20,12 @@ public class RUMEventServiceImpl implements RUMEventService {
 
     private final WebVitalEventRepository webVitalRepository;
     private final ErrorEventRepository errorEventRepository;
-
-    /**
-     * Process a batch of RUM events (web vitals and errors mixed)
-     */
-    @Override
-    @Transactional
-    public void processBatch(List<?> events) {
-        for (Object event : events) {
-            if (event instanceof WebVitalEventDTO) {
-                processWebVital((WebVitalEventDTO) event);
-            } else if (event instanceof ErrorEventDTO) {
-                processError((ErrorEventDTO) event);
-            }
-        }
-        log.info("Processed batch of {} events", events.size());
-    }
+    private final PageViewEventRepository pageViewRepository;
+    private final PageSpeedEventRepository pageSpeedRepository;
+    private final EngagementEventRepository engagementRepository;
+    private final NetworkErrorEventRepository networkErrorRepository;
+    private final ResourcePerformanceEventRepository resourceRepository;
+    private final UserActionEventRepository userActionRepository;
 
     /**
      * Process and save a web vital event
@@ -50,7 +36,9 @@ public class RUMEventServiceImpl implements RUMEventService {
         try {
             WebVitalEvent entity = new WebVitalEvent();
             entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
             entity.setPageUrl(dto.getPageUrl());
+            entity.setUserAgent(dto.getUserAgent());
             entity.setMetricName(dto.getData().getName());
             entity.setValue(dto.getData().getValue());
             entity.setRating(dto.getData().getRating());
@@ -73,19 +61,177 @@ public class RUMEventServiceImpl implements RUMEventService {
         try {
             ErrorEvent entity = new ErrorEvent();
             entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
             entity.setPageUrl(dto.getPageUrl());
+            entity.setUserAgent(dto.getUserAgent());
             entity.setMessage(dto.getData().getMessage());
             entity.setSource(dto.getData().getSource());
             entity.setLineno(dto.getData().getLineno());
             entity.setColno(dto.getData().getColno());
             entity.setStack(dto.getData().getStack());
             entity.setErrorType(dto.getData().getErrorType());
+            entity.setSeverity(dto.getData().getSeverity());
             entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
 
             errorEventRepository.save(entity);
             log.debug("Saved error event: {}", dto.getData().getMessage());
         } catch (Exception e) {
             log.error("Error processing error event", e);
+        }
+    }
+
+    /**
+     * Process and save a page view event
+     */
+    @Override
+    @Transactional
+    public void processPageView(PageViewEventDTO dto) {
+        try {
+            PageViewEvent entity = new PageViewEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setUserAgent(dto.getUserAgent());
+            entity.setPagePath(dto.getData().getPagePath());
+            entity.setPageTitle(dto.getData().getPageTitle());
+            entity.setReferrer(dto.getData().getReferrer());
+            entity.setPreviousPage(dto.getData().getPreviousPage());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            pageViewRepository.save(entity);
+            log.debug("Saved page view: {}", dto.getData().getPagePath());
+        } catch (Exception e) {
+            log.error("Error processing page view event", e);
+        }
+    }
+
+    /**
+     * Process and save a page speed event
+     */
+    @Override
+    @Transactional
+    public void processPageSpeed(PageSpeedEventDTO dto) {
+        try {
+            PageSpeedEvent entity = new PageSpeedEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setLoadTime(dto.getData().getLoadTime());
+            entity.setDomContentLoaded(dto.getData().getDomContentLoaded());
+            entity.setDomInteractive(dto.getData().getDomInteractive());
+            entity.setResourceLoadTime(dto.getData().getResourceLoadTime());
+            entity.setFirstPaint(dto.getData().getFirstPaint());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            pageSpeedRepository.save(entity);
+            log.debug("Saved page speed: load={}ms", dto.getData().getLoadTime());
+        } catch (Exception e) {
+            log.error("Error processing page speed event", e);
+        }
+    }
+
+    /**
+     * Process and save an engagement event
+     */
+    @Override
+    @Transactional
+    public void processEngagement(EngagementEventDTO dto) {
+        try {
+            EngagementEvent entity = new EngagementEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setTimeOnPage(dto.getData().getTimeOnPage());
+            entity.setScrollDepth(dto.getData().getScrollDepth());
+            entity.setInteractionCount(dto.getData().getInteractionCount());
+            entity.setExitType(dto.getData().getExitType());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            engagementRepository.save(entity);
+            log.debug("Saved engagement: time={}ms", dto.getData().getTimeOnPage());
+        } catch (Exception e) {
+            log.error("Error processing engagement event", e);
+        }
+    }
+
+    /**
+     * Process and save a network error event
+     */
+    @Override
+    @Transactional
+    public void processNetworkError(NetworkErrorEventDTO dto) {
+        try {
+            NetworkErrorEvent entity = new NetworkErrorEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setUserAgent(dto.getUserAgent());
+            entity.setUrl(dto.getData().getUrl());
+            entity.setMethod(dto.getData().getMethod());
+            entity.setStatusCode(dto.getData().getStatusCode());
+            entity.setMessage(dto.getData().getMessage());
+            entity.setDuration(dto.getData().getDuration());
+            entity.setErrorType(dto.getData().getErrorType());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            networkErrorRepository.save(entity);
+            log.debug("Saved network error: {} {}", dto.getData().getMethod(), dto.getData().getUrl());
+        } catch (Exception e) {
+            log.error("Error processing network error event", e);
+        }
+    }
+
+    /**
+     * Process and save a resource performance event
+     */
+    @Override
+    @Transactional
+    public void processResourcePerformance(ResourcePerformanceEventDTO dto) {
+        try {
+            ResourcePerformanceEvent entity = new ResourcePerformanceEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setUrl(dto.getData().getUrl());
+            entity.setResourceType(dto.getData().getResourceType());
+            entity.setDuration(dto.getData().getDuration());
+            entity.setTransferSize(dto.getData().getTransferSize());
+            entity.setEncodedBodySize(dto.getData().getEncodedBodySize());
+            entity.setDecodedBodySize(dto.getData().getDecodedBodySize());
+            entity.setCacheHit(dto.getData().getCacheHit());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            resourceRepository.save(entity);
+            log.debug("Saved resource performance: {}", dto.getData().getUrl());
+        } catch (Exception e) {
+            log.error("Error processing resource performance event", e);
+        }
+    }
+
+    /**
+     * Process and save a user action event
+     */
+    @Override
+    @Transactional
+    public void processUserAction(UserActionEventDTO dto) {
+        try {
+            UserActionEvent entity = new UserActionEvent();
+            entity.setSessionId(dto.getSessionId());
+            entity.setUserId(dto.getUserId());
+            entity.setPageUrl(dto.getPageUrl());
+            entity.setActionType(dto.getData().getActionType());
+            entity.setTargetElement(dto.getData().getTargetElement());
+            entity.setTargetText(dto.getData().getTargetText());
+            entity.setTargetId(dto.getData().getTargetId());
+            entity.setTargetClass(dto.getData().getTargetClass());
+            entity.setXPath(dto.getData().getXPath());
+            entity.setValue(dto.getData().getValue());
+            entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
+
+            userActionRepository.save(entity);
+            log.debug("Saved user action: {}", dto.getData().getActionType());
+        } catch (Exception e) {
+            log.error("Error processing user action event", e);
         }
     }
 

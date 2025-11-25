@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Table(
         name = "error_events",
         indexes = {
-                @Index(name = "idx_session_id_error", columnList = "session_id"),
-                @Index(name = "idx_page_url_error", columnList = "page_url"),
-                @Index(name = "idx_created_at_error", columnList = "created_at"),
-                @Index(name = "idx_error_type", columnList = "error_type")
+                @Index(name = "idx_err_session", columnList = "sessionId"),
+                @Index(name = "idx_err_user", columnList = "userId"),
+                @Index(name = "idx_err_severity", columnList = "severity"),
+                @Index(name = "idx_err_timestamp", columnList = "eventTimestamp")
         }
 )
 @Data
@@ -21,30 +21,39 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ErrorEvent extends BaseEntity {
 
-    @Column(name = "session_id", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String sessionId;
 
-    @Column(name = "page_url", nullable = false, length = 500)
+    @Column(nullable = false, length = 50)
+    private String userId;
+
+    @Column(nullable = false, length = 500)
     private String pageUrl;
 
-    @Column(name = "message", nullable = false)
+    @Column(nullable = false)
     private String message;
 
-    @Column(name = "source", length = 300)
-    private String source;
+    @Column(length = 300)
+    private String source; // File name
 
-    @Column(name = "lineno")
+    @Column
     private Integer lineno;
 
-    @Column(name = "colno")
+    @Column
     private Integer colno;
 
-    @Column(name = "stack", columnDefinition = "TEXT")
-    private String stack;
+    @Column(columnDefinition = "TEXT")
+    private String stack; // Stack trace
 
-    @Column(name = "error_type", nullable = false, length = 30)
-    private String errorType; // javascript, unhandledRejection
+    @Column(nullable = false, length = 30)
+    private String errorType; // javascript, unhandledRejection, network
 
-    @Column(name = "event_timestamp", nullable = false)
+    @Column(length = 20)
+    private String severity; // low, medium, high, critical
+
+    @Column(length = 300)
+    private String userAgent;
+
+    @Column(nullable = false)
     private LocalDateTime eventTimestamp;
 }

@@ -13,7 +13,9 @@ public class ErrorEventDTO {
     private String type; // error
     private Long timestamp;
     private String sessionId;
+    private String userId;
     private String pageUrl;
+    private String userAgent;
 
     @JsonProperty("data")
     private ErrorData data;
@@ -27,7 +29,8 @@ public class ErrorEventDTO {
         private Integer lineno;
         private Integer colno;
         private String stack;
-        private String errorType; // javascript, unhandledRejection
+        private String errorType;
+        private String severity;
     }
 }
 

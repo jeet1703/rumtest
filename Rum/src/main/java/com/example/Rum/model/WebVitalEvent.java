@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Table(
         name = "web_vital_events",
         indexes = {
-                @Index(name = "idx_session_id", columnList = "session_id"),
-                @Index(name = "idx_page_url", columnList = "page_url"),
-                @Index(name = "idx_created_at", columnList = "created_at"),
-                @Index(name = "idx_metric_name", columnList = "metric_name")
+                @Index(name = "idx_wv_session", columnList = "sessionId"),
+                @Index(name = "idx_wv_user", columnList = "userId"),
+                @Index(name = "idx_wv_metric", columnList = "metricName"),
+                @Index(name = "idx_wv_timestamp", columnList = "eventTimestamp")
         }
 )
 @Data
@@ -21,24 +21,30 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class WebVitalEvent extends BaseEntity {
 
-    @Column(name = "session_id", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String sessionId;
 
-    @Column(name = "page_url", nullable = false, length = 500)
+    @Column(nullable = false, length = 50)
+    private String userId;
+
+    @Column(nullable = false, length = 500)
     private String pageUrl;
 
-    @Column(name = "metric_name", nullable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private String metricName; // LCP, FCP, CLS, INP, TTFB
 
-    @Column(name = "metric_value", nullable = false)
+    @Column(nullable = false)
     private Double value;
 
-    @Column(name = "rating", length = 20)
+    @Column(length = 20)
     private String rating; // good, needs-improvement, poor
 
-    @Column(name = "navigation_type", length = 50)
+    @Column(length = 50)
     private String navigationType;
 
-    @Column(name = "event_timestamp", nullable = false)
+    @Column(length = 300)
+    private String userAgent;
+
+    @Column(nullable = false)
     private LocalDateTime eventTimestamp;
 }
