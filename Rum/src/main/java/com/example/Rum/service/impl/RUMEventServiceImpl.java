@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -269,6 +270,83 @@ public class RUMEventServiceImpl implements RUMEventService {
         LocalDateTime start = convertTimestamp(startMs);
         LocalDateTime end = convertTimestamp(endMs);
         return errorEventRepository.findByTimeRange(start, end);
+    }
+
+    /**
+     * Get page views for a time range
+     */
+    @Override
+    public List<PageViewEvent> getPageViewsByTimeRange(Long startMs, Long endMs) {
+        LocalDateTime start = convertTimestamp(startMs);
+        LocalDateTime end = convertTimestamp(endMs);
+        return pageViewRepository.findByTimeRange(start, end);
+    }
+
+    /**
+     * Get page speed events for a time range
+     */
+    @Override
+    public List<PageSpeedEvent> getPageSpeedByTimeRange(Long startMs, Long endMs) {
+        LocalDateTime start = convertTimestamp(startMs);
+        LocalDateTime end = convertTimestamp(endMs);
+        return pageSpeedRepository.findByTimeRange(start, end);
+    }
+
+    /**
+     * Get page speed statistics grouped by page URL
+     */
+    @Override
+    public List<Map<String, Object>> getPageSpeedStatsByPage(Long startMs, Long endMs) {
+        LocalDateTime start = convertTimestamp(startMs);
+        LocalDateTime end = convertTimestamp(endMs);
+        List<Object[]> results = pageSpeedRepository.findPageSpeedStatsByPage(start, end);
+        
+        return results.stream().map(row -> {
+            Map<String, Object> stat = new java.util.HashMap<>();
+            stat.put("pageUrl", row[0]);
+            stat.put("viewCount", ((Number) row[1]).longValue());
+            stat.put("avgLoadTime", row[2] != null ? ((Number) row[2]).doubleValue() : 0.0);
+            stat.put("minLoadTime", row[3] != null ? ((Number) row[3]).doubleValue() : 0.0);
+            stat.put("maxLoadTime", row[4] != null ? ((Number) row[4]).doubleValue() : 0.0);
+            return stat;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Get dashboard statistics
+     */
+    @Override
+    public Map<String, Object> getDashboardStats(Long startMs, Long endMs) {
+        LocalDateTime start = convertTimestamp(startMs);
+        LocalDateTime end = convertTimestamp(endMs);
+        
+        Map<String, Object> stats = new java.util.HashMap<>();
+        
+        // Count unique sessions
+        long uniqueSessions = webVitalRepository.findAll().stream()
+            .filter(e -> !e.getEventTimestamp().isBefore(start) && !e.getEventTimestamp().isAfter(end))
+            .map(WebVitalEvent::getSessionId)
+            .distinct()
+            .count();
+        stats.put("uniqueSessions", uniqueSessions);
+        
+        // Count unique users
+        Long uniqueUsers = pageViewRepository.countUniqueUsersByTimeRange(start, end);
+        stats.put("uniqueUsers", uniqueUsers != null ? uniqueUsers : 0L);
+        
+        // Total page views
+        long totalPageViews = pageViewRepository.findByTimeRange(start, end).size();
+        stats.put("totalPageViews", totalPageViews);
+        
+        // Total errors
+        long totalErrors = errorEventRepository.findByTimeRange(start, end).size();
+        stats.put("totalErrors", totalErrors);
+        
+        // Average page load time
+        Double avgLoadTime = pageSpeedRepository.findAverageLoadTime(start, end);
+        stats.put("avgPageLoadTime", avgLoadTime != null ? avgLoadTime : 0.0);
+        
+        return stats;
     }
 
     /**

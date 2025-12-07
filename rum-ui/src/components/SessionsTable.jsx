@@ -46,54 +46,99 @@ export const SessionsTable = ({ webVitals, errors }) => {
 
   if (sessions.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">👥 User Sessions</h2>
-        <div className="text-center text-gray-500 py-8">No sessions data</div>
+      <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-8">
+        <div className="text-center py-12">
+          <div className="text-4xl mb-4">👥</div>
+          <p className="text-gray-400 text-sm">No sessions data</p>
+          <p className="text-gray-500 text-xs mt-2">User sessions will appear here</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">👥 User Sessions</h2>
+    <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-[#2d2d33] bg-[#18181b]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[#d8d9da] flex items-center gap-2">
+              <span className="text-xl">👥</span>
+              User Sessions
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">Active user sessions and activity</p>
+          </div>
+          <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded text-xs font-semibold border border-blue-500/30">
+            {sessions.length} Active
+          </div>
+        </div>
+      </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100">
+        <table className="w-full">
+          <thead className="bg-[#18181b] border-b border-[#2d2d33]">
             <tr>
-              <th className="px-4 py-2 text-left">Session ID</th>
-              <th className="px-4 py-2 text-left">Page URL</th>
-              <th className="px-4 py-2 text-center">Vitals</th>
-              <th className="px-4 py-2 text-center">Errors</th>
-              <th className="px-4 py-2 text-left">Last Seen</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Session ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Page URL
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Vitals
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Errors
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Last Seen
+              </th>
             </tr>
           </thead>
-          <tbody>
-            {sessions.slice(0, 10).map((session) => (
-              <tr key={session.sessionId} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-xs">{session.sessionId.slice(0, 12)}...</td>
-                <td className="px-4 py-2 truncate text-xs max-w-xs">{session.pageUrl}</td>
-                <td className="px-4 py-2 text-center">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+          <tbody className="divide-y divide-[#2d2d33]">
+            {sessions.slice(0, 10).map((session, index) => (
+              <tr 
+                key={session.sessionId} 
+                className="hover:bg-[#18181b] transition-colors duration-150"
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                    <span className="font-mono text-sm text-[#d8d9da] font-medium">
+                      {session.sessionId.slice(0, 16)}...
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-[#d8d9da] truncate max-w-md" title={session.pageUrl}>
+                    {session.pageUrl}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-[#2d2d33] text-blue-400">
                     {session.vitalsCount}
                   </span>
                 </td>
-                <td className="px-4 py-2 text-center">
-                  <span className={`px-2 py-1 rounded ${
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${
                     session.errorsCount > 0
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-red-500/10 text-red-400'
+                      : 'bg-green-500/10 text-green-400'
                   }`}>
                     {session.errorsCount}
                   </span>
                 </td>
-                <td className="px-4 py-2 text-xs">
-                  {format(new Date(session.lastSeen), 'HH:mm:ss')}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                  {format(new Date(session.lastSeen), 'MMM dd, HH:mm:ss')}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {sessions.length > 10 && (
+        <div className="px-6 py-4 border-t border-[#2d2d33] text-center text-xs text-gray-500">
+          Showing 10 of {sessions.length} sessions
+        </div>
+      )}
     </div>
   );
 };

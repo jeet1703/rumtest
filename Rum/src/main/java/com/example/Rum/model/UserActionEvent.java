@@ -44,10 +44,10 @@ public class UserActionEvent extends BaseEntity {
     @Column(length = 200)
     private String targetClass;
 
-    @Column(columnDefinition = "TEXT")
+    @Column
     private String xPath;
 
-    @Column(length = 500)
+    @Column(name = "\"value\"", length = 500)
     private String value;
 
     @Column(nullable = false)

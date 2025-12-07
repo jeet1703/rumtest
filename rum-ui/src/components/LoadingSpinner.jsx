@@ -1,9 +1,13 @@
 import React from 'react';
 
 export const LoadingSpinner = () => (
-  <div className="flex items-center justify-center p-8">
-    <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-500"></div>
-    <span className="ml-3 text-gray-600">Loading RUM data...</span>
+  <div className="flex flex-col items-center justify-center p-16">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-[#2d2d33] rounded-full"></div>
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+    </div>
+    <p className="mt-6 text-base font-medium text-[#d8d9da]">Loading RUM data...</p>
+    <p className="mt-2 text-xs text-gray-500">Fetching real-time metrics</p>
   </div>
 );
 

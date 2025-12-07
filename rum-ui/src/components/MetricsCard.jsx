@@ -5,25 +5,51 @@ export const MetricsCard = ({
   value, 
   unit = '', 
   status = 'good', 
-  icon = '📊' 
+  icon = '📊',
+  trend = null 
 }) => {
-  const statusColors = {
-    good: 'bg-green-100 text-green-800',
-    'needs-improvement': 'bg-yellow-100 text-yellow-800',
-    poor: 'bg-red-100 text-red-800',
+  const statusConfig = {
+    good: {
+      border: 'border-green-500/30',
+      text: 'text-green-400',
+      bg: 'bg-green-500/5',
+    },
+    'needs-improvement': {
+      border: 'border-yellow-500/30',
+      text: 'text-yellow-400',
+      bg: 'bg-yellow-500/5',
+    },
+    poor: {
+      border: 'border-red-500/30',
+      text: 'text-red-400',
+      bg: 'bg-red-500/5',
+    },
   };
 
+  const config = statusConfig[status] || statusConfig.good;
+
   return (
-    <div className={`p-6 rounded-lg shadow-md ${statusColors[status] || statusColors.good}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold opacity-75">{title}</p>
-          <p className="text-3xl font-bold mt-2">
-            {typeof value === 'number' ? value.toFixed(2) : value}
-            <span className="text-lg ml-1">{unit}</span>
-          </p>
+    <div className={`relative bg-[#1f1f23] border border-[#2d2d33] ${config.border} rounded-lg p-4 hover:border-[#3d3d44] transition-all duration-200`}>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <p className={`text-3xl font-bold ${config.text}`}>
+              {typeof value === 'number' ? value.toFixed(value < 1 ? 2 : 0) : value}
+            </p>
+            {unit && (
+              <span className="text-sm font-medium text-gray-500 ml-1">{unit}</span>
+            )}
+          </div>
+          {trend && (
+            <p className={`text-xs mt-2 ${config.text} opacity-70`}>
+              {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+            </p>
+          )}
         </div>
-        <span className="text-4xl">{icon}</span>
+        <div className={`${config.bg} p-2 rounded text-xl`}>
+          {icon}
+        </div>
       </div>
     </div>
   );

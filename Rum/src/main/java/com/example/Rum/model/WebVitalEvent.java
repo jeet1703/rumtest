@@ -33,7 +33,7 @@ public class WebVitalEvent extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String metricName; // LCP, FCP, CLS, INP, TTFB
 
-    @Column(nullable = false)
+    @Column(name = "\"value\"", nullable = false)
     private Double value;
 
     @Column(length = 20)

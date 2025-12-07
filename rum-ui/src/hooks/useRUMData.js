@@ -5,6 +5,10 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
   const [data, setData] = useState({
     webVitals: [],
     errors: [],
+    pageViews: [],
+    pageSpeed: [],
+    pageSpeedStats: [],
+    stats: {},
     loading: true,
     error: null,
   });
@@ -17,14 +21,29 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
         const endTime = Date.now();
         const startTime = endTime - timeRangeMs;
 
-        const [vitalsRes, errorsRes] = await Promise.all([
+        const [
+          vitalsRes, 
+          errorsRes, 
+          pageViewsRes, 
+          pageSpeedRes, 
+          pageSpeedStatsRes,
+          statsRes
+        ] = await Promise.all([
           rumAPI.getWebVitals(startTime, endTime),
           rumAPI.getErrors(startTime, endTime),
+          rumAPI.getPageViews(startTime, endTime),
+          rumAPI.getPageSpeed(startTime, endTime),
+          rumAPI.getPageSpeedStats(startTime, endTime),
+          rumAPI.getDashboardStats(startTime, endTime),
         ]);
 
         setData({
-          webVitals: vitalsRes.data,
-          errors: errorsRes.data,
+          webVitals: vitalsRes.data || [],
+          errors: errorsRes.data || [],
+          pageViews: pageViewsRes.data || [],
+          pageSpeed: pageSpeedRes.data || [],
+          pageSpeedStats: pageSpeedStatsRes.data || [],
+          stats: statsRes.data || {},
           loading: false,
           error: null,
         });

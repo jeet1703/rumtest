@@ -42,7 +42,7 @@ public class ErrorEvent extends BaseEntity {
     @Column
     private Integer colno;
 
-    @Column(columnDefinition = "TEXT")
+    @Column
     private String stack; // Stack trace
 
     @Column(nullable = false, length = 30)

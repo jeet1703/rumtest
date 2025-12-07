@@ -149,6 +149,54 @@ public class RUMEventController {
     }
 
     /**
+     * Get page views for a time range
+     */
+    @GetMapping("/pageviews/range")
+    public ResponseEntity<List<com.example.Rum.model.PageViewEvent>> getPageViewsByTimeRange(
+            @RequestParam Long startMs,
+            @RequestParam Long endMs
+    ) {
+        List<com.example.Rum.model.PageViewEvent> pageViews = rumEventService.getPageViewsByTimeRange(startMs, endMs);
+        return ResponseEntity.ok(pageViews);
+    }
+
+    /**
+     * Get page speed events for a time range
+     */
+    @GetMapping("/pagespeed/range")
+    public ResponseEntity<List<com.example.Rum.model.PageSpeedEvent>> getPageSpeedByTimeRange(
+            @RequestParam Long startMs,
+            @RequestParam Long endMs
+    ) {
+        List<com.example.Rum.model.PageSpeedEvent> pageSpeed = rumEventService.getPageSpeedByTimeRange(startMs, endMs);
+        return ResponseEntity.ok(pageSpeed);
+    }
+
+    /**
+     * Get page speed statistics grouped by page URL
+     */
+    @GetMapping("/pagespeed/stats")
+    public ResponseEntity<List<Map<String, Object>>> getPageSpeedStats(
+            @RequestParam Long startMs,
+            @RequestParam Long endMs
+    ) {
+        List<Map<String, Object>> stats = rumEventService.getPageSpeedStatsByPage(startMs, endMs);
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Get dashboard statistics
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getDashboardStats(
+            @RequestParam Long startMs,
+            @RequestParam Long endMs
+    ) {
+        Map<String, Object> stats = rumEventService.getDashboardStats(startMs, endMs);
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
      * Health check endpoint
      * GET /api/rum/health
      */
