@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { rumAPI } from '../services/apiService';
+import { useLiveMode } from '../contexts/LiveModeContext';
 
 export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
+  const { isLive, refreshInterval } = useLiveMode();
   const [data, setData] = useState({
     webVitals: [],
     errors: [],
@@ -11,6 +13,7 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
     stats: {},
     loading: true,
     error: null,
+    lastUpdate: null,
   });
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
           stats: statsRes.data || {},
           loading: false,
           error: null,
+          lastUpdate: new Date(),
         });
       } catch (err) {
         setData(prev => ({
@@ -58,10 +62,12 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
 
     fetchData();
     
-    // Refetch every 10 seconds for real-time updates
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
-  }, [timeRangeMs]);
+    // Refetch based on live mode and refresh interval
+    if (isLive) {
+      const interval = setInterval(fetchData, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [timeRangeMs, isLive, refreshInterval]);
 
   return data;
 };

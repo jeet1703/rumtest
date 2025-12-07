@@ -6,10 +6,11 @@ import { ErrorsChart } from './ErrorsChart';
 import { SessionsTable } from './SessionsTable';
 import { PageSpeedTable } from './PageSpeedTable';
 import { LoadingSpinner } from './LoadingSpinner';
+import { Header } from './Header';
 
 export const Dashboard = () => {
   const [timeRange, setTimeRange] = useState(3600000); // 1 hour
-  const { webVitals, errors, pageViews, pageSpeedStats, stats, loading, error } = useRUMData(timeRange);
+  const { webVitals, errors, pageViews, pageSpeedStats, stats, loading, error, lastUpdate } = useRUMData(timeRange);
 
   const calculateMetrics = () => {
     if (webVitals.length === 0) {
@@ -46,24 +47,18 @@ export const Dashboard = () => {
 
   const metrics = calculateMetrics();
 
-  const timeRangeOptions = [
-    { label: '15 min', value: 900000 },
-    { label: '1 hour', value: 3600000 },
-    { label: '24 hours', value: 86400000 },
-  ];
-
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0b0b0f] flex items-center justify-center p-8">
-        <div className="max-w-2xl w-full bg-[#1f1f23] border border-red-500/30 rounded-lg p-8">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-8">
+        <div className="max-w-2xl w-full bg-[var(--bg-secondary)] border border-red-500/30 rounded-lg p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold text-red-400 mb-4">Connection Error</h1>
-            <p className="text-gray-400 mb-2">
+            <p className="text-[var(--text-secondary)] mb-2">
               Unable to connect to backend: <span className="font-mono text-sm text-red-400">{error}</span>
             </p>
-            <p className="text-gray-500 mt-4 text-sm">
-              Make sure your Spring Boot backend is running on <span className="font-mono bg-[#2d2d33] px-2 py-1 rounded text-[#d8d9da]">http://localhost:8080</span>
+            <p className="text-[var(--text-tertiary)] mt-4 text-sm">
+              Make sure your Spring Boot backend is running on <span className="font-mono bg-[var(--bg-tertiary)] px-2 py-1 rounded text-[var(--text-primary)]">http://localhost:8080</span>
             </p>
           </div>
         </div>
@@ -72,42 +67,13 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0b0f]">
-      {/* Header - Grafana Faro Style */}
-      <div className="bg-[#18181b] border-b border-[#2d2d33] sticky top-0 z-10">
-        <div className="max-w-[1920px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-[#d8d9da] flex items-center gap-3">
-                <span className="text-blue-400">📊</span>
-                RUM Dashboard
-              </h1>
-              <p className="text-xs text-gray-500 mt-1">Real User Monitoring - Grafana Faro Style</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-[#1f1f23] px-3 py-1.5 rounded border border-[#2d2d33]">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-400">Live</span>
-              </div>
-              <div className="flex gap-1 bg-[#1f1f23] p-1 rounded border border-[#2d2d33]">
-                {timeRangeOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setTimeRange(option.value)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      timeRange === option.value
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-[#d8d9da] hover:bg-[#2d2d33]'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[var(--bg-primary)]">
+      <Header 
+        title="Dashboard" 
+        subtitle="Real User Monitoring Overview"
+        timeRange={timeRange}
+        setTimeRange={setTimeRange}
+      />
 
       {/* Main Content */}
       <div className="max-w-[1920px] mx-auto px-6 py-6">

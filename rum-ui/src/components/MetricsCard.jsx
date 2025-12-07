@@ -29,16 +29,16 @@ export const MetricsCard = ({
   const config = statusConfig[status] || statusConfig.good;
 
   return (
-    <div className={`relative bg-[#1f1f23] border border-[#2d2d33] ${config.border} rounded-lg p-4 hover:border-[#3d3d44] transition-all duration-200`}>
+    <div className={`relative bg-[var(--bg-secondary)] border border-[var(--border-color)] ${config.border} rounded-lg p-4 hover:border-[var(--border-color)] hover:border-opacity-70 transition-all duration-200`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">{title}</p>
+          <p className="text-xs font-medium text-[var(--text-tertiary)] mb-2 uppercase tracking-wide">{title}</p>
           <div className="flex items-baseline gap-2">
             <p className={`text-3xl font-bold ${config.text}`}>
               {typeof value === 'number' ? value.toFixed(value < 1 ? 2 : 0) : value}
             </p>
             {unit && (
-              <span className="text-sm font-medium text-gray-500 ml-1">{unit}</span>
+              <span className="text-sm font-medium text-[var(--text-tertiary)] ml-1">{unit}</span>
             )}
           </div>
           {trend && (
