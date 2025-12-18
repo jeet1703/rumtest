@@ -113,19 +113,26 @@ public class RUMEventServiceImpl implements RUMEventService {
     @Transactional
     public void processPageSpeed(PageSpeedEventDTO dto) {
         try {
+            // Validate and ensure non-negative values
+            double loadTime = Math.max(0, dto.getData().getLoadTime());
+            double domContentLoaded = Math.max(0, dto.getData().getDomContentLoaded());
+            double domInteractive = Math.max(0, dto.getData().getDomInteractive());
+            double resourceLoadTime = Math.max(0, dto.getData().getResourceLoadTime());
+            Double firstPaint = dto.getData().getFirstPaint() != null ? Math.max(0, dto.getData().getFirstPaint()) : null;
+
             PageSpeedEvent entity = new PageSpeedEvent();
             entity.setSessionId(dto.getSessionId());
             entity.setUserId(dto.getUserId());
             entity.setPageUrl(dto.getPageUrl());
-            entity.setLoadTime(dto.getData().getLoadTime());
-            entity.setDomContentLoaded(dto.getData().getDomContentLoaded());
-            entity.setDomInteractive(dto.getData().getDomInteractive());
-            entity.setResourceLoadTime(dto.getData().getResourceLoadTime());
-            entity.setFirstPaint(dto.getData().getFirstPaint());
+            entity.setLoadTime(loadTime);
+            entity.setDomContentLoaded(domContentLoaded);
+            entity.setDomInteractive(domInteractive);
+            entity.setResourceLoadTime(resourceLoadTime);
+            entity.setFirstPaint(firstPaint);
             entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
 
             pageSpeedRepository.save(entity);
-            log.debug("Saved page speed: load={}ms", dto.getData().getLoadTime());
+            log.debug("Saved page speed: load={}ms", loadTime);
         } catch (Exception e) {
             log.error("Error processing page speed event", e);
         }
@@ -305,9 +312,12 @@ public class RUMEventServiceImpl implements RUMEventService {
             Map<String, Object> stat = new java.util.HashMap<>();
             stat.put("pageUrl", row[0]);
             stat.put("viewCount", ((Number) row[1]).longValue());
-            stat.put("avgLoadTime", row[2] != null ? ((Number) row[2]).doubleValue() : 0.0);
-            stat.put("minLoadTime", row[3] != null ? ((Number) row[3]).doubleValue() : 0.0);
-            stat.put("maxLoadTime", row[4] != null ? ((Number) row[4]).doubleValue() : 0.0);
+            double avgLoadTime = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+            double minLoadTime = row[3] != null ? ((Number) row[3]).doubleValue() : 0.0;
+            double maxLoadTime = row[4] != null ? ((Number) row[4]).doubleValue() : 0.0;
+            stat.put("avgLoadTime", Math.max(0, avgLoadTime));
+            stat.put("minLoadTime", Math.max(0, minLoadTime));
+            stat.put("maxLoadTime", Math.max(0, maxLoadTime));
             return stat;
         }).collect(java.util.stream.Collectors.toList());
     }
@@ -342,9 +352,9 @@ public class RUMEventServiceImpl implements RUMEventService {
         long totalErrors = errorEventRepository.findByTimeRange(start, end).size();
         stats.put("totalErrors", totalErrors);
         
-        // Average page load time
+        // Average page load time (ensure non-negative)
         Double avgLoadTime = pageSpeedRepository.findAverageLoadTime(start, end);
-        stats.put("avgPageLoadTime", avgLoadTime != null ? avgLoadTime : 0.0);
+        stats.put("avgPageLoadTime", avgLoadTime != null && avgLoadTime >= 0 ? avgLoadTime : 0.0);
         
         return stats;
     }

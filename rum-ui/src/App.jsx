@@ -6,6 +6,7 @@ import { ErrorsView } from './components/ErrorsView';
 import { PageSpeedView } from './components/PageSpeedView';
 import { SessionsView } from './components/SessionsView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { ComparisonView } from './components/ComparisonView';
 import { SettingsView } from './components/SettingsView';
 import './App.css';
 
@@ -26,6 +27,8 @@ function App() {
         return <SessionsView />;
       case 'analytics':
         return <AnalyticsView />;
+      case 'comparison':
+        return <ComparisonView />;
       case 'settings':
         return <SettingsView />;
       default:

@@ -327,29 +327,41 @@ export class RUMWrapper {
 
   private capturePageSpeed(): void {
     try {
-      const perfData = performance.getEntriesByType('navigation')[0] as any;
-      
-      if (perfData) {
-        const event: PageSpeedEvent = {
-          type: 'pageSpeed',
-          timestamp: Date.now(),
-          sessionId: this.sessionId,
-          userId: this.userId,
-          pageUrl: window.location.href,
-          userAgent: navigator.userAgent,
-          data: {
-            loadTime: perfData.loadEventEnd - perfData.fetchStart,
-            domContentLoaded: perfData.domContentLoadedEventEnd - perfData.fetchStart,
-            domInteractive: perfData.domInteractive - perfData.fetchStart,
-            resourceLoadTime: perfData.loadEventEnd - perfData.responseEnd,
-            firstPaint: perfData.domContentLoadedEventStart - perfData.fetchStart,
-          },
-        };
+      // Wait a bit to ensure all metrics are available
+      setTimeout(() => {
+        const perfData = performance.getEntriesByType('navigation')[0] as any;
 
-        this.enqueueEvent(event);
-        this.addBreadcrumb('custom', `Page speed: ${event.data.loadTime.toFixed(0)}ms`);
-        this.log('Page speed captured:', event.data);
-      }
+        if (perfData && perfData.loadEventEnd > 0) {
+          // Calculate metrics and ensure they're not negative
+          const loadTime = Math.max(0, perfData.loadEventEnd - perfData.fetchStart);
+          const domContentLoaded = Math.max(0, perfData.domContentLoadedEventEnd - perfData.fetchStart);
+          const domInteractive = Math.max(0, perfData.domInteractive - perfData.fetchStart);
+          const resourceLoadTime = Math.max(0, perfData.loadEventEnd - perfData.responseEnd);
+          const firstPaint = Math.max(0, perfData.domContentLoadedEventStart - perfData.fetchStart);
+
+          const event: PageSpeedEvent = {
+            type: 'pageSpeed',
+            timestamp: Date.now(),
+            sessionId: this.sessionId,
+            userId: this.userId,
+            pageUrl: window.location.href,
+            userAgent: navigator.userAgent,
+            data: {
+              loadTime,
+              domContentLoaded,
+              domInteractive,
+              resourceLoadTime,
+              firstPaint,
+            },
+          };
+
+          this.enqueueEvent(event);
+          this.addBreadcrumb('custom', `Page speed: ${event.data.loadTime.toFixed(0)}ms`);
+          this.log('Page speed captured:', event.data);
+        } else {
+          this.log('Page speed metrics not ready yet, skipping');
+        }
+      }, 500); // Wait 500ms for metrics to stabilize
     } catch (e) {
       this.log('Error capturing page speed:', e);
     }

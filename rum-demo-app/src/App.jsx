@@ -188,10 +188,6 @@ function App() {
         <p>This app demonstrates RUM SDK integration</p>
         <div className="stats">
           <div className="stat-card">
-            <span className="stat-label">Page Load Time</span>
-            <span className="stat-value">{pageLoadTime}ms</span>
-          </div>
-          <div className="stat-card">
             <span className="stat-label">Events Tracked</span>
             <span className="stat-value">{eventCount}</span>
           </div>

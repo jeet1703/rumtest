@@ -14,6 +14,7 @@ export const Sidebar = ({ activeView, setActiveView }) => {
     { id: 'pagespeed', label: 'Page Speed', icon: '🚀' },
     { id: 'sessions', label: 'Sessions', icon: '👥' },
     { id: 'analytics', label: 'Analytics', icon: '📈' },
+    { id: 'comparison', label: 'Comparison', icon: '🔍' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 

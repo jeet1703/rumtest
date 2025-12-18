@@ -13,7 +13,8 @@ import java.util.List;
 public interface PageSpeedEventRepository extends JpaRepository<PageSpeedEvent, Long> {
     
     @Query("SELECT AVG(ps.loadTime) FROM PageSpeedEvent ps " +
-           "WHERE ps.eventTimestamp BETWEEN :start AND :end")
+           "WHERE ps.eventTimestamp BETWEEN :start AND :end " +
+           "AND ps.loadTime >= 0")
     Double findAverageLoadTime(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
@@ -34,6 +35,7 @@ public interface PageSpeedEventRepository extends JpaRepository<PageSpeedEvent, 
            "MAX(ps.loadTime) as maxLoadTime " +
            "FROM PageSpeedEvent ps " +
            "WHERE ps.eventTimestamp BETWEEN :start AND :end " +
+           "AND ps.loadTime >= 0 " +
            "GROUP BY ps.pageUrl " +
            "ORDER BY viewCount DESC")
     List<Object[]> findPageSpeedStatsByPage(
