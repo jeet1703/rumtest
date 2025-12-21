@@ -31,7 +31,11 @@ export const SettingsView = () => {
                 onClick={toggleTheme}
                 className="px-4 py-2 bg-[#2d2d33] hover:bg-[#3d3d44] rounded-lg text-sm font-medium text-[#d8d9da] transition-colors flex items-center gap-2"
               >
-                <span>{theme === 'dark' ? '🌙' : '☀️'}</span>
+                <img 
+                  src={theme === 'dark' ? '/assets/icons/moon.svg' : '/assets/icons/sun.svg'} 
+                  alt={theme === 'dark' ? 'Dark' : 'Light'} 
+                  className="w-5 h-5"
+                />
                 <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
               </button>
             </div>
@@ -50,11 +54,11 @@ export const SettingsView = () => {
                   onClick={toggleLiveMode}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                     isLive
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                       : 'bg-[#2d2d33] text-gray-400 hover:bg-[#3d3d44]'
                   }`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-blue-400 animate-pulse' : 'bg-gray-500'}`}></div>
                   <span>{isLive ? 'Enabled' : 'Disabled'}</span>
                 </button>
               </div>

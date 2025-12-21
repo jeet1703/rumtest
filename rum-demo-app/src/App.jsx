@@ -211,6 +211,55 @@ function App() {
             </button>
           </div>
         </section>
+        <section className="demo-section">
+  <h2>Error Generator (SDK Compatible)</h2>
+  <p>Generate errors with different severities and types.</p>
+
+  <div className="button-group">
+    {/* LOW */}
+    <button
+      className="demo-button"
+      onClick={() =>
+        trackDemoError({
+          message: 'Minor UI warning (low severity)',
+          errorType: 'javascript',
+          severity: 'low',
+        })
+      }
+    >
+      🟢 Low Severity Error
+    </button>
+
+    {/* MEDIUM */}
+    <button
+      className="demo-button"
+      onClick={() =>
+        trackDemoError({
+          message: 'Deprecated API usage detected',
+          errorType: 'javascript',
+          severity: 'medium',
+        })
+      }
+    >
+      🟡 Medium Severity Error
+    </button>
+
+    {/* HIGH */}
+    <button
+      className="demo-button error"
+      onClick={() =>
+        trackDemoError({
+          message: 'Unhandled exception in component',
+          errorType: 'unhandledRejection',
+          severity: 'high',
+        })
+      }
+    >
+      🔴 High Severity Error
+    </button>
+
+  </div>
+</section>
 
         <section className="demo-section">
           <h2>Navigation Demo</h2>
@@ -242,7 +291,7 @@ function App() {
             <p>✅ User interactions are tracked</p>
           </div>
         </section>
-
+      
         <section className="demo-section">
           <h2>Dashboard Link</h2>
           <p>Open the RUM Dashboard to see the tracked events in real-time.</p>

@@ -48,7 +48,7 @@ export const SessionsTable = ({ webVitals, errors }) => {
     return (
       <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-8">
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">👥</div>
+          <img src="/assets/icons/users.svg" alt="Users" className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-400 text-sm">No sessions data</p>
           <p className="text-gray-500 text-xs mt-2">User sessions will appear here</p>
         </div>
@@ -62,7 +62,7 @@ export const SessionsTable = ({ webVitals, errors }) => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#d8d9da] flex items-center gap-2">
-              <span className="text-xl">👥</span>
+              <img src="/assets/icons/users.svg" alt="Users" className="w-5 h-5" />
               User Sessions
             </h2>
             <p className="text-xs text-gray-500 mt-1">Active user sessions and activity</p>
@@ -121,7 +121,7 @@ export const SessionsTable = ({ webVitals, errors }) => {
                   <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${
                     session.errorsCount > 0
                       ? 'bg-red-500/10 text-red-400'
-                      : 'bg-green-500/10 text-green-400'
+                      : 'bg-blue-500/10 text-blue-400'
                   }`}>
                     {session.errorsCount}
                   </span>

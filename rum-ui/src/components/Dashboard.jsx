@@ -52,7 +52,7 @@ export const Dashboard = () => {
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-8">
         <div className="max-w-2xl w-full bg-[var(--bg-secondary)] border border-red-500/30 rounded-lg p-8">
           <div className="text-center">
-            <div className="text-6xl mb-4">⚠️</div>
+            <img src="/assets/icons/warning.svg" alt="Warning" className="w-16 h-16 mx-auto mb-4 text-red-400" />
             <h1 className="text-2xl font-bold text-red-400 mb-4">Connection Error</h1>
             <p className="text-[var(--text-secondary)] mb-2">
               Unable to connect to backend: <span className="font-mono text-sm text-red-400">{error}</span>
@@ -88,42 +88,42 @@ export const Dashboard = () => {
                 value={metrics.sessionCount}
                 unit=""
                 status="good"
-                icon="👥"
+                iconSrc="/assets/icons/users.svg"
               />
               <MetricsCard
                 title="Users"
                 value={metrics.uniqueUsers}
                 unit=""
                 status="good"
-                icon="👤"
+                iconSrc="/assets/icons/user.svg"
               />
               <MetricsCard
                 title="Page Views"
                 value={metrics.pageViewCount}
                 unit=""
                 status="good"
-                icon="📄"
+                iconSrc="/assets/icons/document.svg"
               />
               <MetricsCard
                 title="Avg LCP"
                 value={metrics.avgLCP}
                 unit="ms"
                 status={metrics.avgLCP <= 2500 ? 'good' : metrics.avgLCP <= 4000 ? 'needs-improvement' : 'poor'}
-                icon="⚡"
+                iconSrc="/assets/icons/lightning.svg"
               />
               <MetricsCard
                 title="Avg CLS"
                 value={metrics.avgCLS}
                 unit=""
                 status={metrics.avgCLS <= 0.1 ? 'good' : metrics.avgCLS <= 0.25 ? 'needs-improvement' : 'poor'}
-                icon="📐"
+                iconSrc="/assets/icons/ruler.svg"
               />
               <MetricsCard
                 title="Errors"
                 value={metrics.errorCount}
                 unit=""
                 status={metrics.errorCount === 0 ? 'good' : 'poor'}
-                icon="❌"
+                iconSrc="/assets/icons/error.svg"
               />
             </div>
 

@@ -54,7 +54,7 @@ export const WebVitalsChart = ({ data }) => {
     return (
       <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-8">
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">📊</div>
+          <img src="/assets/icons/graph.svg" alt="Chart" className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-400 text-sm">No web vitals data available</p>
           <p className="text-gray-500 text-xs mt-2">Data will appear here once events are received</p>
         </div>
@@ -66,7 +66,7 @@ export const WebVitalsChart = ({ data }) => {
     <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-[#2d2d33] bg-[#18181b]">
         <h2 className="text-lg font-semibold text-[#d8d9da] flex items-center gap-2">
-          <span className="text-xl">📈</span>
+          <img src="/assets/icons/chart-line.svg" alt="Chart" className="w-5 h-5" />
           Web Vitals Over Time
         </h2>
         <p className="text-xs text-gray-500 mt-1">Core Web Vitals performance metrics</p>

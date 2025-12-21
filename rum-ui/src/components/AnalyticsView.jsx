@@ -40,42 +40,42 @@ export const AnalyticsView = () => {
                 value={analytics.totalPageViews}
                 unit=""
                 status="good"
-                icon="📄"
+                iconSrc="/assets/icons/document.svg"
               />
               <MetricsCard
                 title="Unique Users"
                 value={analytics.uniqueUsers}
                 unit=""
                 status="good"
-                icon="👤"
+                iconSrc="/assets/icons/user.svg"
               />
               <MetricsCard
                 title="Sessions"
                 value={analytics.uniqueSessions}
                 unit=""
                 status="good"
-                icon="👥"
+                iconSrc="/assets/icons/users.svg"
               />
               <MetricsCard
                 title="Avg Load Time"
                 value={analytics.avgPageLoadTime}
                 unit="ms"
                 status={analytics.avgPageLoadTime < 1000 ? 'good' : 'needs-improvement'}
-                icon="⚡"
+                iconSrc="/assets/icons/speed.svg"
               />
               <MetricsCard
                 title="Error Rate"
                 value={analytics.errorRate}
                 unit="%"
                 status={analytics.errorRate < 1 ? 'good' : analytics.errorRate < 5 ? 'needs-improvement' : 'poor'}
-                icon="❌"
+                iconSrc="/assets/icons/error.svg"
               />
               <MetricsCard
                 title="Avg LCP"
                 value={analytics.avgLCP}
                 unit="ms"
                 status={analytics.avgLCP <= 2500 ? 'good' : analytics.avgLCP <= 4000 ? 'needs-improvement' : 'poor'}
-                icon="📊"
+                iconSrc="/assets/icons/graph.svg"
               />
             </div>
             <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-6">

@@ -31,21 +31,21 @@ export const SessionsView = () => {
                 value={sessions.size}
                 unit=""
                 status="good"
-                icon="👥"
+                iconSrc="/assets/icons/users.svg"
               />
               <MetricsCard
                 title="Unique Users"
                 value={uniqueUsers}
                 unit=""
                 status="good"
-                icon="👤"
+                iconSrc="/assets/icons/user.svg"
               />
               <MetricsCard
                 title="Total Events"
                 value={webVitals.length + errors.length}
                 unit=""
                 status="good"
-                icon="📊"
+                iconSrc="/assets/icons/graph.svg"
               />
             </div>
             <SessionsTable webVitals={webVitals} errors={errors} />

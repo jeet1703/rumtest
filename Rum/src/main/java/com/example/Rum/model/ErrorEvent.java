@@ -54,6 +54,11 @@ public class ErrorEvent extends BaseEntity {
     @Column(length = 300)
     private String userAgent;
 
+    @Column
+    private String breadcrumbs; // JSON array of breadcrumbs
+    @Column
+    private String componentStack; // React component stack
+
     @Column(nullable = false)
     private LocalDateTime eventTimestamp;
 }

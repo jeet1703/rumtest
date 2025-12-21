@@ -6,7 +6,7 @@ export const PageSpeedTable = ({ data }) => {
     return (
       <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-6">
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">📄</div>
+          <img src="/assets/icons/document.svg" alt="Document" className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-400 text-sm">No page speed data available</p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export const PageSpeedTable = ({ data }) => {
               const avgLoad = page.avgLoadTime || 0;
               const status = avgLoad < 1000 ? 'good' : avgLoad < 3000 ? 'warning' : 'poor';
               const statusColor = {
-                good: 'text-green-400 bg-green-400/10',
+                good: 'text-blue-400 bg-blue-400/10',
                 warning: 'text-yellow-400 bg-yellow-400/10',
                 poor: 'text-red-400 bg-red-400/10',
               };
@@ -67,7 +67,7 @@ export const PageSpeedTable = ({ data }) => {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className={`text-sm font-semibold ${
-                      status === 'good' ? 'text-green-400' : 
+                      status === 'good' ? 'text-blue-400' : 
                       status === 'warning' ? 'text-yellow-400' : 
                       'text-red-400'
                     }`}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useRUMData } from '../hooks/useRUMData';
 import { Header } from './Header';
 import { ErrorsChart } from './ErrorsChart';
+import { ErrorsTable } from './ErrorsTable';
 import { MetricsCard } from './MetricsCard';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -22,8 +23,8 @@ export const ErrorsView = () => {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Errors" 
+      <Header
+        title="Errors"
         subtitle="Error tracking and analysis"
         timeRange={timeRange}
         setTimeRange={setTimeRange}
@@ -39,31 +40,39 @@ export const ErrorsView = () => {
                 value={errorStats.total}
                 unit=""
                 status={errorStats.total === 0 ? 'good' : 'poor'}
-                icon="❌"
+                iconSrc="/assets/icons/error.svg"
               />
+
               <MetricsCard
                 title="Critical"
                 value={errorStats.critical}
                 unit=""
                 status={errorStats.critical === 0 ? 'good' : 'poor'}
-                icon="🔴"
+                iconSrc="/assets/icons/alert.svg"
               />
+
               <MetricsCard
                 title="High Severity"
                 value={errorStats.high}
                 unit=""
                 status={errorStats.high === 0 ? 'good' : 'needs-improvement'}
-                icon="🟠"
+                iconSrc="/assets/icons/warning.svg"
               />
+
               <MetricsCard
                 title="Error Types"
                 value={Object.keys(errorStats.byType).length}
                 unit=""
                 status="good"
-                icon="📊"
+                iconSrc="/assets/icons/graph.svg"
               />
             </div>
-            <ErrorsChart data={errors} />
+
+            <div className="mb-6">
+              <ErrorsChart data={errors} />
+            </div>
+
+            <ErrorsTable errors={errors} />
           </>
         )}
       </div>

@@ -21,9 +21,9 @@ export const Header = ({ title, subtitle, timeRange, setTimeRange }) => {
             <h1 className="text-2xl font-semibold text-[#d8d9da] flex items-center gap-3">
               {title}
               {isLive && (
-                <div className="flex items-center gap-2 bg-green-500/10 px-2 py-1 rounded border border-green-500/30">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-400 font-medium">LIVE</span>
+                <div className="flex items-center gap-2 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-blue-400 font-medium">LIVE</span>
                 </div>
               )}
             </h1>

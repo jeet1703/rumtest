@@ -1,18 +1,18 @@
 import React from 'react';
 
-export const MetricsCard = ({ 
-  title, 
-  value, 
-  unit = '', 
-  status = 'good', 
-  icon = '📊',
-  trend = null 
+export const MetricsCard = ({
+  title,
+  value,
+  unit = '',
+  status = 'good',
+  iconSrc = null,   // <-- SVG / image path
+  trend = null
 }) => {
   const statusConfig = {
     good: {
-      border: 'border-green-500/30',
-      text: 'text-green-400',
-      bg: 'bg-green-500/5',
+      border: 'border-blue-500/30',
+      text: 'text-blue-400',
+      bg: 'bg-blue-500/5',
     },
     'needs-improvement': {
       border: 'border-yellow-500/30',
@@ -29,29 +29,54 @@ export const MetricsCard = ({
   const config = statusConfig[status] || statusConfig.good;
 
   return (
-    <div className={`relative bg-[var(--bg-secondary)] border border-[var(--border-color)] ${config.border} rounded-lg p-4 hover:border-[var(--border-color)] hover:border-opacity-70 transition-all duration-200`}>
+    <div
+      className={`relative bg-[var(--bg-secondary)] border border-[var(--border-color)]
+      ${config.border} rounded-xl p-5 hover:border-opacity-70 transition-all duration-300 
+      shadow-lg hover:shadow-xl hover:-translate-y-1`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-medium text-[var(--text-tertiary)] mb-2 uppercase tracking-wide">{title}</p>
+          <p className="text-xs font-medium text-[var(--text-tertiary)] mb-2 uppercase tracking-wide">
+            {title}
+          </p>
+
           <div className="flex items-baseline gap-2">
             <p className={`text-3xl font-bold ${config.text}`}>
-              {typeof value === 'number' ? value.toFixed(value < 1 ? 2 : 0) : value}
+              {typeof value === 'number'
+                ? value.toFixed(value < 1 ? 2 : 0)
+                : value}
             </p>
+
             {unit && (
-              <span className="text-sm font-medium text-[var(--text-tertiary)] ml-1">{unit}</span>
+              <span className="text-sm font-medium text-[var(--text-tertiary)]">
+                {unit}
+              </span>
             )}
           </div>
-          {trend && (
-            <p className={`text-xs mt-2 ${config.text} opacity-70`}>
-              {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+
+          {trend !== null && (
+            <p className={`text-xs mt-2 ${config.text} opacity-70 flex items-center gap-1`}>
+              <img 
+                src={trend > 0 ? "/assets/icons/arrow-up.svg" : "/assets/icons/arrow-down.svg"} 
+                alt={trend > 0 ? "Up" : "Down"} 
+                className="w-3 h-3 inline"
+              />
+              {Math.abs(trend)}%
             </p>
           )}
         </div>
-        <div className={`${config.bg} p-2 rounded text-xl`}>
-          {icon}
-        </div>
+
+        {/* ICON */}
+        {iconSrc && (
+          <div className={`${config.bg} p-2 rounded`}>
+            <img
+              src={iconSrc}
+              alt={title}
+              className="w-6 h-6 object-contain"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 };
-

@@ -32,21 +32,21 @@ export const PageSpeedView = () => {
                 value={avgLoadTime}
                 unit="ms"
                 status={avgLoadTime < 1000 ? 'good' : avgLoadTime < 3000 ? 'needs-improvement' : 'poor'}
-                icon="⚡"
+                iconSrc="/assets/icons/lightning.svg"
               />
               <MetricsCard
                 title="Total Pages"
                 value={totalPages}
                 unit=""
                 status="good"
-                icon="📄"
+                iconSrc="/assets/icons/document.svg"
               />
               <MetricsCard
                 title="Total Views"
                 value={totalViews}
                 unit=""
                 status="good"
-                icon="👁️"
+                iconSrc="/assets/icons/eye.svg"
               />
             </div>
             <PageSpeedTable data={pageSpeedStats} />

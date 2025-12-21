@@ -56,35 +56,35 @@ export const WebVitalsView = () => {
                 value={metrics.avgLCP}
                 unit="ms"
                 status={metrics.avgLCP <= 2500 ? 'good' : metrics.avgLCP <= 4000 ? 'needs-improvement' : 'poor'}
-                icon="⚡"
+                iconSrc="/assets/icons/lightning.svg"
               />
               <MetricsCard
                 title="FCP"
                 value={metrics.avgFCP}
                 unit="ms"
                 status={metrics.avgFCP <= 1800 ? 'good' : metrics.avgFCP <= 3000 ? 'needs-improvement' : 'poor'}
-                icon="🎯"
+                iconSrc="/assets/icons/target.svg"
               />
               <MetricsCard
                 title="INP"
                 value={metrics.avgINP}
                 unit="ms"
                 status={metrics.avgINP <= 200 ? 'good' : metrics.avgINP <= 500 ? 'needs-improvement' : 'poor'}
-                icon="👆"
+                iconSrc="/assets/icons/pointer-up.svg"
               />
               <MetricsCard
                 title="CLS"
                 value={metrics.avgCLS}
                 unit=""
                 status={metrics.avgCLS <= 0.1 ? 'good' : metrics.avgCLS <= 0.25 ? 'needs-improvement' : 'poor'}
-                icon="📐"
+                iconSrc="/assets/icons/ruler.svg"
               />
               <MetricsCard
                 title="TTFB"
                 value={metrics.avgTTFB}
                 unit="ms"
                 status={metrics.avgTTFB <= 800 ? 'good' : metrics.avgTTFB <= 1800 ? 'needs-improvement' : 'poor'}
-                icon="🌐"
+                iconSrc="/assets/icons/globe.svg"
               />
             </div>
             <WebVitalsChart data={webVitals} />

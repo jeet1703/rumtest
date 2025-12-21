@@ -3,24 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --success-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  --primary-gradient: linear-gradient(135deg, #00aaff 0%, #0088cc 100%);
+  --success-gradient: linear-gradient(135deg, #00aaff 0%, #3b82f6 100%);
   --warning-gradient: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
   --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  --dark-bg: #0f172a;
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --dark-bg: #0a0e1a;
+  --card-shadow: 0 10px 25px -5px rgba(0, 170, 255, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 170, 255, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --accent-color: #00aaff;
+  --accent-hover: #0088cc;
 }
 
 /* Dark Theme (Default) */
 [data-theme="dark"] {
-  --bg-primary: #0b0b0f;
-  --bg-secondary: #1f1f23;
-  --bg-tertiary: #18181b;
-  --border-color: #2d2d33;
-  --text-primary: #d8d9da;
-  --text-secondary: #9ca3af;
-  --text-tertiary: #6b7280;
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #141824;
+  --bg-tertiary: #1a1f2e;
+  --border-color: #253044;
+  --text-primary: #e8eaed;
+  --text-secondary: #b0b8c4;
+  --text-tertiary: #7c8694;
 }
 
 /* Light Theme */
@@ -54,28 +56,122 @@ code {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-secondary);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--accent-color);
   border-radius: 10px;
+  opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--accent-hover);
+  opacity: 0.8;
 }
 
 /* Smooth transitions */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 200ms;
+}
+
+/* Enhanced card styling */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+/* Button enhancements */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 170, 255, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Input enhancements */
+input, textarea, select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.1);
+}
+
+/* Table enhancements */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+}
+
+tr:hover {
+  background: var(--bg-tertiary);
+}
+
+/* Code block styling */
+pre, code {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+/* Loading spinner enhancement */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
 }
 

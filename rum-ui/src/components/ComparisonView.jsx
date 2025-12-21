@@ -2,52 +2,6 @@ import React, { useState } from 'react';
 import { Header } from './Header';
 import { MetricsCard } from './MetricsCard';
 
-// SVG Icons
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>
-);
-
-const PlayIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-  </svg>
-);
-
-const SpinnerIcon = () => (
-  <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-  </svg>
-);
-
-const TrophyIcon = ({ className = '' }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-    <path d="M4 22h16"></path>
-    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-  </svg>
-);
-
-const AlertIcon = ({ className = '' }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-    <path d="M12 9v4"></path>
-    <path d="M12 17h.01"></path>
-  </svg>
-);
-
 export const ComparisonView = () => {
   const [api1, setApi1] = useState({ 
     url: '', 
@@ -66,6 +20,7 @@ export const ComparisonView = () => {
   const [testResults, setTestResults] = useState([]);
   const [isTesting, setIsTesting] = useState(false);
   const [testIterations, setTestIterations] = useState(3);
+  const [selectedResponse, setSelectedResponse] = useState(null);
 
   // Test a single API endpoint
   const testApi = async (apiConfig, iterations = 1) => {
@@ -143,11 +98,14 @@ export const ComparisonView = () => {
         const endTime = performance.now();
         const endRequestTime = Date.now();
         
-        // Read response body (optional, for size calculation)
+        // Read response body (for size calculation and display)
         let responseSize = 0;
+        let responseBody = '';
+        let responseContentType = response.headers.get('content-type') || 'text/plain';
         try {
           const text = await response.text();
           responseSize = new Blob([text]).size;
+          responseBody = text;
         } catch (e) {
           // Ignore body reading errors
         }
@@ -162,6 +120,9 @@ export const ComparisonView = () => {
           responseTime,
           requestDuration,
           responseSize,
+          responseBody,
+          responseContentType,
+          responseHeaders: Object.fromEntries(response.headers.entries()),
           timestamp: new Date().toISOString(),
           error: null,
         });
@@ -178,6 +139,9 @@ export const ComparisonView = () => {
           responseTime,
           requestDuration,
           responseSize: 0,
+          responseBody: '',
+          responseContentType: '',
+          responseHeaders: {},
           timestamp: new Date().toISOString(),
           error: error.message || 'Unknown error',
         });
@@ -330,7 +294,7 @@ export const ComparisonView = () => {
                     })}
                     className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
                   >
-                    <PlusIcon />
+                    <img src="/assets/icons/plus.svg" alt="Add" className="w-4 h-4" />
                     Add Header
                   </button>
                 </div>
@@ -368,7 +332,7 @@ export const ComparisonView = () => {
                           className="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
                           title="Remove header"
                         >
-                          <TrashIcon />
+                          <img src="/assets/icons/trash.svg" alt="Remove" className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -400,7 +364,7 @@ export const ComparisonView = () => {
                         (() => {
                           try {
                             JSON.parse(api1.body);
-                            return 'border-green-500/30';
+                            return 'border-blue-500/30';
                           } catch {
                             return 'border-red-500/30';
                           }
@@ -412,9 +376,19 @@ export const ComparisonView = () => {
                       {(() => {
                         try {
                           JSON.parse(api1.body);
-                          return <span className="text-green-400">✓ Valid JSON</span>;
+                          return (
+                            <span className="text-blue-400 flex items-center gap-1">
+                              <img src="/assets/icons/checkmark.svg" alt="Valid" className="w-3 h-3" />
+                              Valid JSON
+                            </span>
+                          );
                         } catch (e) {
-                          return <span className="text-red-400">✗ Invalid JSON: {e.message}</span>;
+                          return (
+                            <span className="text-red-400 flex items-center gap-1">
+                              <img src="/assets/icons/cross.svg" alt="Invalid" className="w-3 h-3" />
+                              Invalid JSON: {e.message}
+                            </span>
+                          );
                         }
                       })()}
                     </div>
@@ -461,7 +435,7 @@ export const ComparisonView = () => {
                     })}
                     className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
                   >
-                    <PlusIcon />
+                    <img src="/assets/icons/plus.svg" alt="Add" className="w-4 h-4" />
                     Add Header
                   </button>
                 </div>
@@ -499,7 +473,7 @@ export const ComparisonView = () => {
                           className="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
                           title="Remove header"
                         >
-                          <TrashIcon />
+                          <img src="/assets/icons/trash.svg" alt="Remove" className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -531,7 +505,7 @@ export const ComparisonView = () => {
                         (() => {
                           try {
                             JSON.parse(api2.body);
-                            return 'border-green-500/30';
+                            return 'border-blue-500/30';
                           } catch {
                             return 'border-red-500/30';
                           }
@@ -543,9 +517,19 @@ export const ComparisonView = () => {
                       {(() => {
                         try {
                           JSON.parse(api2.body);
-                          return <span className="text-green-400">✓ Valid JSON</span>;
+                          return (
+                            <span className="text-blue-400 flex items-center gap-1">
+                              <img src="/assets/icons/checkmark.svg" alt="Valid" className="w-3 h-3" />
+                              Valid JSON
+                            </span>
+                          );
                         } catch (e) {
-                          return <span className="text-red-400">✗ Invalid JSON: {e.message}</span>;
+                          return (
+                            <span className="text-red-400 flex items-center gap-1">
+                              <img src="/assets/icons/cross.svg" alt="Invalid" className="w-3 h-3" />
+                              Invalid JSON: {e.message}
+                            </span>
+                          );
                         }
                       })()}
                     </div>
@@ -576,17 +560,17 @@ export const ComparisonView = () => {
             className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
               !hasAtLeastOneApi || isTesting
                 ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
             {isTesting ? (
               <>
-                <SpinnerIcon />
+                <img src="/assets/icons/spinner.svg" alt="Loading" className="w-4 h-4 animate-spin" />
                 Testing...
               </>
             ) : (
               <>
-                <PlayIcon />
+                <img src="/assets/icons/play.svg" alt="Play" className="w-4 h-4" />
                 Run Performance Tests
               </>
             )}
@@ -603,7 +587,7 @@ export const ComparisonView = () => {
                 value={testResults.length}
                 unit=""
                 status="good"
-                icon="🔗"
+                iconSrc="/assets/icons/link.svg"
               />
               <MetricsCard
                 title="Avg Response Time"
@@ -619,7 +603,7 @@ export const ComparisonView = () => {
                 })()}
                 unit="ms"
                 status="good"
-                icon="⚡"
+                iconSrc="/assets/icons/lightning.svg"
               />
               <MetricsCard
                 title="Success Rate"
@@ -631,14 +615,14 @@ export const ComparisonView = () => {
                 })()}
                 unit="%"
                 status="good"
-                icon="✅"
+                iconSrc="/assets/icons/checkmark.svg"
               />
               <MetricsCard
                 title="Total Tests"
                 value={testResults.reduce((sum, r) => sum + r.results.length, 0)}
                 unit=""
                 status="good"
-                icon="📊"
+                iconSrc="/assets/icons/graph.svg"
               />
             </div>
 
@@ -660,6 +644,7 @@ export const ComparisonView = () => {
                       <th className="px-6 py-4 text-center text-sm font-semibold text-[#d8d9da]">Avg Request Duration (ms)</th>
                       <th className="px-6 py-4 text-center text-sm font-semibold text-[#d8d9da]">Avg Response Size</th>
                       <th className="px-6 py-4 text-center text-sm font-semibold text-[#d8d9da]">Success/Total</th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold text-[#d8d9da]">Response</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#2d2d33]">
@@ -679,7 +664,7 @@ export const ComparisonView = () => {
                         <td className="px-6 py-4 text-center text-sm text-[#d8d9da] font-medium">
                           <span className={`px-2 py-1 rounded ${
                             result.method === 'GET' ? 'bg-blue-500/20 text-blue-400' :
-                            result.method === 'POST' ? 'bg-green-500/20 text-green-400' :
+                            result.method === 'POST' ? 'bg-blue-500/20 text-blue-400' :
                             'bg-yellow-500/20 text-yellow-400'
                           }`}>
                             {result.method}
@@ -687,7 +672,7 @@ export const ComparisonView = () => {
                         </td>
                         <td className={`px-6 py-4 text-center text-sm font-medium ${
                           result.metrics.statusCode >= 200 && result.metrics.statusCode < 300
-                            ? 'text-green-400'
+                            ? 'text-blue-400'
                             : result.metrics.statusCode >= 300 && result.metrics.statusCode < 400
                             ? 'text-yellow-400'
                             : result.metrics.statusCode >= 400
@@ -697,36 +682,36 @@ export const ComparisonView = () => {
                           {result.metrics.statusCode || 'N/A'}
                         </td>
                         <td className={`px-6 py-4 text-center text-sm font-medium ${
-                          successRateBestWorst.best === result.url ? 'text-green-400' :
+                          successRateBestWorst.best === result.url ? 'text-blue-400' :
                           successRateBestWorst.worst === result.url ? 'text-red-400' :
-                          result.metrics.successRate === 100 ? 'text-green-400' :
+                          result.metrics.successRate === 100 ? 'text-blue-400' :
                           result.metrics.successRate >= 50 ? 'text-yellow-400' :
                           'text-red-400'
                         }`}>
                           <div className="flex items-center justify-center gap-1">
                             {result.metrics.successRate.toFixed(1)}%
                             {successRateBestWorst.best === result.url && testResults.length > 1 && (
-                              <TrophyIcon className="text-green-400" />
+                              <img src="/assets/icons/trophy.svg" alt="Best" className="w-4 h-4 text-blue-400" />
                             )}
                             {successRateBestWorst.worst === result.url && result.metrics.successRate < 100 && testResults.length > 1 && (
-                              <AlertIcon className="text-red-400" />
+                              <img src="/assets/icons/alert.svg" alt="Worst" className="w-4 h-4 text-red-400" />
                             )}
                           </div>
                         </td>
                         <td className={`px-6 py-4 text-center text-sm font-medium ${
-                          responseTimeBestWorst.best === result.url ? 'text-green-400' :
+                          responseTimeBestWorst.best === result.url ? 'text-blue-400' :
                           responseTimeBestWorst.worst === result.url ? 'text-red-400' :
-                          result.metrics.avgResponseTime < 200 ? 'text-green-400' :
+                          result.metrics.avgResponseTime < 200 ? 'text-blue-400' :
                           result.metrics.avgResponseTime < 1000 ? 'text-yellow-400' :
                           'text-red-400'
                         }`}>
                           <div className="flex items-center justify-center gap-1">
                             {result.metrics.avgResponseTime.toFixed(0)} ms
                             {responseTimeBestWorst.best === result.url && testResults.length > 1 && (
-                              <TrophyIcon className="text-green-400" />
+                              <img src="/assets/icons/trophy.svg" alt="Best" className="w-4 h-4" />
                             )}
                             {responseTimeBestWorst.worst === result.url && testResults.length > 1 && (
-                              <AlertIcon className="text-red-400" />
+                              <img src="/assets/icons/alert.svg" alt="Worst" className="w-4 h-4" />
                             )}
                           </div>
                         </td>
@@ -747,13 +732,27 @@ export const ComparisonView = () => {
                         <td className="px-6 py-4 text-center text-sm">
                           <span className={`font-medium ${
                             result.metrics.successCount === result.results.length
-                              ? 'text-green-400'
+                              ? 'text-blue-400'
                               : result.metrics.failureCount === result.results.length
                               ? 'text-red-400'
                               : 'text-yellow-400'
                           }`}>
                             {result.metrics.successCount}/{result.results.length}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {result.results.length > 0 && result.results[0].success && (
+                            <button
+                              onClick={() => setSelectedResponse({
+                                url: result.url,
+                                label: result.label,
+                                results: result.results
+                              })}
+                              className="text-blue-400 hover:text-blue-300 text-xs font-medium px-2 py-1 rounded hover:bg-blue-500/10 transition-colors"
+                            >
+                              View Response
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -762,19 +761,116 @@ export const ComparisonView = () => {
               </div>
             </div>
 
+            {/* Response Viewer Modal */}
+            {selectedResponse && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedResponse(null)}>
+                <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                  <div className="px-6 py-4 border-b border-[#2d2d33] bg-[#18181b] flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-[#d8d9da]">{selectedResponse.label}</h3>
+                      <p className="text-xs text-gray-400 mt-1">{selectedResponse.url}</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedResponse(null)}
+                      className="text-gray-400 hover:text-[#d8d9da] transition-colors"
+                    >
+                      <img src="/assets/icons/cross.svg" alt="Close" className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6">
+                    <div className="space-y-4">
+                      {selectedResponse.results.map((res, idx) => (
+                        <div key={idx} className="bg-[#18181b] border border-[#2d2d33] rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                res.success ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'
+                              }`}>
+                                {res.success ? 'Success' : 'Failed'}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {res.statusCode} {res.statusText}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {res.responseTime.toFixed(0)}ms
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(res.timestamp).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          
+                          {res.responseHeaders && Object.keys(res.responseHeaders).length > 0 && (
+                            <div className="mb-3">
+                              <h4 className="text-xs font-semibold text-gray-400 mb-2 uppercase">Response Headers</h4>
+                              <div className="bg-[#0b0b0f] border border-[#2d2d33] rounded p-2 text-xs font-mono">
+                                {Object.entries(res.responseHeaders).map(([key, value]) => (
+                                  <div key={key} className="text-gray-300">
+                                    <span className="text-blue-400">{key}:</span> <span className="text-gray-400">{String(value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {res.responseBody && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase">Response Body</h4>
+                                <span className="text-xs text-gray-500">
+                                  {res.responseContentType} • {(res.responseSize / 1024).toFixed(2)} KB
+                                </span>
+                              </div>
+                              <div className="bg-[#0b0b0f] border border-[#2d2d33] rounded p-3 overflow-x-auto">
+                                {res.responseContentType?.includes('application/json') ? (
+                                  <pre className="text-xs text-gray-300 font-mono whitespace-pre-wrap">
+                                    {(() => {
+                                      try {
+                                        return JSON.stringify(JSON.parse(res.responseBody), null, 2);
+                                      } catch {
+                                        return res.responseBody;
+                                      }
+                                    })()}
+                                  </pre>
+                                ) : (
+                                  <pre className="text-xs text-gray-300 font-mono whitespace-pre-wrap max-h-96 overflow-y-auto">
+                                    {res.responseBody.substring(0, 10000)}
+                                    {res.responseBody.length > 10000 && '...\n\n(Response truncated)'}
+                                  </pre>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {res.error && (
+                            <div className="mt-3">
+                              <h4 className="text-xs font-semibold text-red-400 mb-2 uppercase">Error</h4>
+                              <div className="bg-red-500/10 border border-red-500/30 rounded p-2 text-xs text-red-400">
+                                {res.error}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Legend */}
             {testResults.length > 1 && (
               <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-4">
                 <p className="text-sm text-gray-400 flex items-center gap-4 flex-wrap">
                   <span className="flex items-center gap-1">
-                    <TrophyIcon className="text-green-400" />
-                    <span className="text-green-400">= Best performer</span>
+                    <img src="/assets/icons/trophy.svg" alt="Best" className="w-4 h-4" />
+                    <span className="text-blue-400">= Best performer</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <AlertIcon className="text-red-400" />
+                    <img src="/assets/icons/alert.svg" alt="Worst" className="w-4 h-4" />
                     <span className="text-red-400">= Worst performer</span>
                   </span>
-                  <span>Response Time: <span className="text-green-400">&lt;200ms</span> = excellent, 
+                  <span>Response Time: <span className="text-blue-400">&lt;200ms</span> = excellent, 
                     <span className="text-yellow-400"> 200-1000ms</span> = good, 
                     <span className="text-red-400"> &gt;1000ms</span> = needs improvement</span>
                 </p>

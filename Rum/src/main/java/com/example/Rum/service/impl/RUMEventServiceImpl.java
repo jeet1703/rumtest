@@ -4,6 +4,7 @@ import com.example.Rum.dto.*;
 import com.example.Rum.model.*;
 import com.example.Rum.repository.*;
 import com.example.Rum.service.RUMEventService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class RUMEventServiceImpl implements RUMEventService {
     private final NetworkErrorEventRepository networkErrorRepository;
     private final ResourcePerformanceEventRepository resourceRepository;
     private final UserActionEventRepository userActionRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * Process and save a web vital event
@@ -72,6 +74,21 @@ public class RUMEventServiceImpl implements RUMEventService {
             entity.setStack(dto.getData().getStack());
             entity.setErrorType(dto.getData().getErrorType());
             entity.setSeverity(dto.getData().getSeverity());
+            
+            // Serialize breadcrumbs to JSON if present
+            if (dto.getData().getBreadcrumbs() != null && !dto.getData().getBreadcrumbs().isEmpty()) {
+                try {
+                    entity.setBreadcrumbs(objectMapper.writeValueAsString(dto.getData().getBreadcrumbs()));
+                } catch (Exception e) {
+                    log.warn("Failed to serialize breadcrumbs", e);
+                }
+            }
+            
+            // Set component stack if present
+            if (dto.getData().getComponentStack() != null) {
+                entity.setComponentStack(dto.getData().getComponentStack());
+            }
+            
             entity.setEventTimestamp(convertTimestamp(dto.getTimestamp()));
 
             errorEventRepository.save(entity);

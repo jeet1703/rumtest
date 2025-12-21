@@ -50,7 +50,7 @@ export const ErrorsChart = ({ data }) => {
     return (
       <div className="bg-[#1f1f23] border border-[#2d2d33] rounded-lg p-8">
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">✅</div>
+          <img src="/assets/icons/checkmark.svg" alt="No errors" className="w-16 h-16 mx-auto mb-4 text-blue-400" />
           <p className="text-gray-400 text-sm">No errors recorded</p>
           <p className="text-gray-500 text-xs mt-2">
             Great! Your application is error-free
@@ -66,7 +66,7 @@ export const ErrorsChart = ({ data }) => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#d8d9da] flex items-center gap-2">
-              <span className="text-xl">❌</span>
+              <img src="/assets/icons/error.svg" alt="Errors" className="w-5 h-5" />
               Errors by Type
             </h2>
             <p className="text-xs text-gray-500 mt-1">
