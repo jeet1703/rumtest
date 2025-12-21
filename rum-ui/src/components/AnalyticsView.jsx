@@ -63,13 +63,13 @@ export const AnalyticsView = () => {
                 status={analytics.avgPageLoadTime < 1000 ? 'good' : 'needs-improvement'}
                 iconSrc="/assets/icons/speed.svg"
               />
-              <MetricsCard
+              {/* <MetricsCard
                 title="Error Rate"
                 value={analytics.errorRate}
                 unit="%"
                 status={analytics.errorRate < 1 ? 'good' : analytics.errorRate < 5 ? 'needs-improvement' : 'poor'}
                 iconSrc="/assets/icons/error.svg"
-              />
+              /> */}
               <MetricsCard
                 title="Avg LCP"
                 value={analytics.avgLCP}
