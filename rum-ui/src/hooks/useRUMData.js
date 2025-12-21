@@ -41,12 +41,12 @@ export const useRUMData = (timeRangeMs = 3600000) => { // 1 hour default
         ]);
 
         setData({
-          webVitals: vitalsRes.data || [],
-          errors: errorsRes.data || [],
-          pageViews: pageViewsRes.data || [],
-          pageSpeed: pageSpeedRes.data || [],
-          pageSpeedStats: pageSpeedStatsRes.data || [],
-          stats: statsRes.data || {},
+          webVitals: vitalsRes || [],
+          errors: errorsRes || [],
+          pageViews: pageViewsRes || [],
+          pageSpeed: pageSpeedRes || [],
+          pageSpeedStats: pageSpeedStatsRes || [],
+          stats: statsRes || {},
           loading: false,
           error: null,
           lastUpdate: new Date(),

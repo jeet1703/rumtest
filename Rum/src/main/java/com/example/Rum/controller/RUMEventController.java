@@ -1,8 +1,9 @@
 package com.example.Rum.controller;
 
+import com.example.Rum.dto.common.ApiResponseDTO;
+import com.example.Rum.dto.response.*;
 import com.example.Rum.dto.*;
-import com.example.Rum.model.ErrorEvent;
-import com.example.Rum.model.WebVitalEvent;
+import com.example.Rum.mapper.RUMEventMapper;
 import com.example.Rum.service.RUMEventService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rum")
@@ -23,6 +23,7 @@ public class RUMEventController {
 
     private final RUMEventService rumEventService;
     private final ObjectMapper objectMapper;
+    private final RUMEventMapper rumEventMapper;
 
     /**
      * Ingest batch of RUM events
@@ -30,13 +31,13 @@ public class RUMEventController {
      * Body: Array of event objects
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> ingestEvents(@RequestBody List<JsonNode> events) {
+    public ResponseEntity<ApiResponseDTO<EventBatchResponseDTO>> ingestEvents(@RequestBody List<JsonNode> events) {
         try {
             log.info("Received batch of {} RUM events", events.size());
 
-            if (events.isEmpty()) {
+            if (events == null || events.isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Empty event batch"));
+                        .body(ApiResponseDTO.error("Empty event batch"));
             }
 
             int processed = 0;
@@ -92,16 +93,21 @@ public class RUMEventController {
                 }
             }
 
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Processed " + processed + " events",
-                    "processed", processed,
-                    "failed", events.size() - processed
+            EventBatchResponseDTO batchResponse = new EventBatchResponseDTO();
+            batchResponse.setProcessed(processed);
+            batchResponse.setFailed(events.size() - processed);
+            batchResponse.setTotal(events.size());
+            
+            return ResponseEntity.ok(ApiResponseDTO.success(
+                    "Processed " + processed + " events",
+                    batchResponse,
+                    processed,
+                    events.size() - processed
             ));
         } catch (Exception e) {
             log.error("Error ingesting events", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(ApiResponseDTO.error(e.getMessage()));
         }
     }
 
@@ -109,18 +115,22 @@ public class RUMEventController {
      * Get web vitals for a specific session
      */
     @GetMapping("/sessions/{sessionId}/vitals")
-    public ResponseEntity<List<WebVitalEvent>> getSessionVitals(@PathVariable String sessionId) {
-        List<WebVitalEvent> vitals = rumEventService.getWebVitalsBySession(sessionId);
-        return ResponseEntity.ok(vitals);
+    public ResponseEntity<ApiResponseDTO<List<WebVitalEventResponseDTO>>> getSessionVitals(
+            @PathVariable String sessionId) {
+        var vitals = rumEventService.getWebVitalsBySession(sessionId);
+        List<WebVitalEventResponseDTO> responseDTOs = rumEventMapper.toWebVitalEventResponseDTOList(vitals);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved web vitals for session", responseDTOs));
     }
 
     /**
      * Get errors for a specific session
      */
     @GetMapping("/sessions/{sessionId}/errors")
-    public ResponseEntity<List<ErrorEvent>> getSessionErrors(@PathVariable String sessionId) {
-        List<ErrorEvent> errors = rumEventService.getErrorsBySession(sessionId);
-        return ResponseEntity.ok(errors);
+    public ResponseEntity<ApiResponseDTO<List<ErrorEventResponseDTO>>> getSessionErrors(
+            @PathVariable String sessionId) {
+        var errors = rumEventService.getErrorsBySession(sessionId);
+        List<ErrorEventResponseDTO> responseDTOs = rumEventMapper.toErrorEventResponseDTOList(errors);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved errors for session", responseDTOs));
     }
 
     /**
@@ -128,72 +138,72 @@ public class RUMEventController {
      * Query params: startMs (epoch ms) and endMs (epoch ms)
      */
     @GetMapping("/vitals/range")
-    public ResponseEntity<List<WebVitalEvent>> getVitalsByTimeRange(
+    public ResponseEntity<ApiResponseDTO<List<WebVitalEventResponseDTO>>> getVitalsByTimeRange(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        List<WebVitalEvent> vitals = rumEventService.getWebVitalsByTimeRange(startMs, endMs);
-        return ResponseEntity.ok(vitals);
+            @RequestParam Long endMs) {
+        var vitals = rumEventService.getWebVitalsByTimeRange(startMs, endMs);
+        List<WebVitalEventResponseDTO> responseDTOs = rumEventMapper.toWebVitalEventResponseDTOList(vitals);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved web vitals for time range", responseDTOs));
     }
 
     /**
      * Get errors for a time range
      */
     @GetMapping("/errors/range")
-    public ResponseEntity<List<ErrorEvent>> getErrorsByTimeRange(
+    public ResponseEntity<ApiResponseDTO<List<ErrorEventResponseDTO>>> getErrorsByTimeRange(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        List<ErrorEvent> errors = rumEventService.getErrorsByTimeRange(startMs, endMs);
-        return ResponseEntity.ok(errors);
+            @RequestParam Long endMs) {
+        var errors = rumEventService.getErrorsByTimeRange(startMs, endMs);
+        List<ErrorEventResponseDTO> responseDTOs = rumEventMapper.toErrorEventResponseDTOList(errors);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved errors for time range", responseDTOs));
     }
 
     /**
      * Get page views for a time range
      */
     @GetMapping("/pageviews/range")
-    public ResponseEntity<List<com.example.Rum.model.PageViewEvent>> getPageViewsByTimeRange(
+    public ResponseEntity<ApiResponseDTO<List<PageViewEventResponseDTO>>> getPageViewsByTimeRange(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        List<com.example.Rum.model.PageViewEvent> pageViews = rumEventService.getPageViewsByTimeRange(startMs, endMs);
-        return ResponseEntity.ok(pageViews);
+            @RequestParam Long endMs) {
+        var pageViews = rumEventService.getPageViewsByTimeRange(startMs, endMs);
+        List<PageViewEventResponseDTO> responseDTOs = rumEventMapper.toPageViewEventResponseDTOList(pageViews);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved page views for time range", responseDTOs));
     }
 
     /**
      * Get page speed events for a time range
      */
     @GetMapping("/pagespeed/range")
-    public ResponseEntity<List<com.example.Rum.model.PageSpeedEvent>> getPageSpeedByTimeRange(
+    public ResponseEntity<ApiResponseDTO<List<PageSpeedEventResponseDTO>>> getPageSpeedByTimeRange(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        List<com.example.Rum.model.PageSpeedEvent> pageSpeed = rumEventService.getPageSpeedByTimeRange(startMs, endMs);
-        return ResponseEntity.ok(pageSpeed);
+            @RequestParam Long endMs) {
+        var pageSpeed = rumEventService.getPageSpeedByTimeRange(startMs, endMs);
+        List<PageSpeedEventResponseDTO> responseDTOs = rumEventMapper.toPageSpeedEventResponseDTOList(pageSpeed);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved page speed events for time range", responseDTOs));
     }
 
     /**
      * Get page speed statistics grouped by page URL
      */
     @GetMapping("/pagespeed/stats")
-    public ResponseEntity<List<Map<String, Object>>> getPageSpeedStats(
+    public ResponseEntity<ApiResponseDTO<List<PageSpeedStatsResponseDTO>>> getPageSpeedStats(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        List<Map<String, Object>> stats = rumEventService.getPageSpeedStatsByPage(startMs, endMs);
-        return ResponseEntity.ok(stats);
+            @RequestParam Long endMs) {
+        var stats = rumEventService.getPageSpeedStatsByPage(startMs, endMs);
+        List<PageSpeedStatsResponseDTO> responseDTOs = rumEventMapper.toPageSpeedStatsResponseDTOList(stats);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved page speed statistics", responseDTOs));
     }
 
     /**
      * Get dashboard statistics
      */
     @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getDashboardStats(
+    public ResponseEntity<ApiResponseDTO<DashboardStatsResponseDTO>> getDashboardStats(
             @RequestParam Long startMs,
-            @RequestParam Long endMs
-    ) {
-        Map<String, Object> stats = rumEventService.getDashboardStats(startMs, endMs);
-        return ResponseEntity.ok(stats);
+            @RequestParam Long endMs) {
+        var stats = rumEventService.getDashboardStats(startMs, endMs);
+        DashboardStatsResponseDTO responseDTO = rumEventMapper.toDashboardStatsResponseDTO(stats);
+        return ResponseEntity.ok(ApiResponseDTO.success("Retrieved dashboard statistics", responseDTO));
     }
 
     /**
@@ -201,12 +211,12 @@ public class RUMEventController {
      * GET /api/rum/health
      */
     @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "UP",
-                "service", "RUM Backend",
-                "timestamp", String.valueOf(System.currentTimeMillis())
-        ));
+    public ResponseEntity<ApiResponseDTO<HealthResponseDTO>> health() {
+        HealthResponseDTO response = new HealthResponseDTO();
+        response.setStatus("UP");
+        response.setService("RUM Backend");
+        response.setTimestamp(System.currentTimeMillis());
+        return ResponseEntity.ok(ApiResponseDTO.success("Service is healthy", response));
     }
 }
 
