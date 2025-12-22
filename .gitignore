@@ -90,7 +90,6 @@ application-*.properties
 # -----------------------------------------------------------
 # OS-generated
 ehthumbs.db
-Icon?
 desktop.ini
 
 # Backup files
